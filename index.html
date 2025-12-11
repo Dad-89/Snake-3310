@@ -1,419 +1,483 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Snake Ultimate</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Snake 3310 Perfect</title>
     <style>
-        /* --- RESET & LAYOUT --- */
+        /* --- CORE LAYOUT --- */
         body {
-            background-color: #879c85; /* Nokia Green */
+            background-color: #222;
             margin: 0;
-            overflow: hidden;
-            touch-action: none; /* Disabilita scroll nativo */
+            overflow: hidden; /* Stop scroll */
+            position: fixed; /* Stop elastic bounce on iOS */
+            width: 100%;
+            height: 100%;
             font-family: 'Courier New', monospace;
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            touch-action: none;
         }
 
-        /* --- TOP BAR (Header) --- */
+        /* --- TOP BAR --- */
         #top-bar {
             height: 50px;
-            background-color: #000;
+            background: #000;
             color: #879c85;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            border-bottom: 2px solid #555;
             z-index: 100;
-            flex-shrink: 0; /* Non si schiaccia */
+            flex-shrink: 0;
         }
-        #score-box {
-            font-size: 18px;
-            font-weight: bold;
-        }
+        #score-box { font-weight: bold; font-size: 18px; }
         #pause-btn {
-            background: #879c85;
-            color: #000;
-            border: none;
-            padding: 5px 15px;
-            font-weight: bold;
-            font-family: inherit;
-            border-radius: 4px;
+            background: #879c85; color: #000; border: none;
+            padding: 5px 15px; font-weight: bold; border-radius: 4px;
             font-size: 14px;
         }
 
-        /* --- GAME AREA --- */
-        #game-container {
-            flex-grow: 1; /* Occupa tutto lo spazio rimanente */
+        /* --- STAGE DI GIOCO --- */
+        #stage {
+            flex-grow: 1;
             position: relative;
-            background-color: #879c85;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #333;
+            width: 100%;
         }
+
+        /* --- TELAIO NOKIA --- */
+        #phone {
+            position: relative;
+            aspect-ratio: 9 / 17; /* Ratio approssimativo telefono */
+            height: 96%; /* Occupa quasi tutta l'altezza */
+            width: auto;
+            background-image: url('nokia_frame.JPG'); /* <--- FILE IMMAGINE */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        /* --- SCHERMO LCD (ANCORA) --- */
+        #screen {
+            position: absolute;
+            /* CALIBRAZIONE: Modifica questi valori se lo schermo non è allineato */
+            top: 26%;
+            left: 23%;
+            width: 54%;
+            height: 23%;
+            
+            background-color: #879c85;
+            border-radius: 3px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        /* Classe per il bordo rosso di calibrazione (si toglie da sola) */
+        .debug-border { border: 2px solid red; box-sizing: border-box; }
+
         canvas {
             display: block;
             width: 100%;
             height: 100%;
             image-rendering: pixelated;
+            opacity: 0.9;
         }
 
-        /* --- MENUS & OVERLAYS --- */
+        /* --- TOUCH LAYER INVISIBILE --- */
+        #touch-zone {
+            position: absolute;
+            top: 50px; left: 0; bottom: 0; right: 0;
+            z-index: 50;
+        }
+
+        /* --- MENUS --- */
         .overlay {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
             z-index: 200;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             color: #879c85;
         }
         .hidden { display: none !important; }
         
-        h1 { margin: 0 0 30px 0; font-size: 32px; letter-spacing: 2px; text-transform: uppercase; }
+        h1 { font-size: 32px; letter-spacing: 4px; margin-bottom: 30px; }
         
-        .menu-btn {
-            width: 200px;
-            padding: 15px;
-            margin: 10px 0;
-            background: transparent;
-            border: 2px solid #879c85;
-            color: #879c85;
+        .btn {
+            width: 200px; padding: 15px; margin: 10px;
+            background: transparent; border: 2px solid #879c85;
+            color: #879c85; font-weight: bold; font-size: 18px;
             font-family: inherit;
-            font-size: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
         }
-        .menu-btn:active { background: #879c85; color: #000; }
+        .btn:active { background: #879c85; color: #000; }
 
-        /* --- LEADERBOARD STYLE --- */
-        #lb-container { width: 80%; max-width: 300px; text-align: left; }
-        .lb-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #444; padding: 5px 0; margin-bottom: 5px; font-size: 14px;}
-        .lb-top { color: #ffff00; font-weight: bold; text-shadow: 0 0 5px orange; } /* Easter egg style */
-
-        /* --- ABOUT STYLE --- */
-        #about-content { text-align: center; line-height: 1.6; font-size: 16px; }
-        .heart-link { 
-            color: #ff3333; 
-            font-size: 40px; 
-            text-decoration: none; 
-            display: inline-block;
-            margin-top: 10px;
-            animation: pulse 1s infinite;
-        }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        /* Easter Egg Style */
+        .gold-score { color: #ffeb3b; text-shadow: 0 0 5px orange; }
+        .lb-row { width: 250px; display: flex; justify-content: space-between; border-bottom: 1px dashed #444; margin-bottom: 8px; font-size: 16px; }
 
     </style>
 </head>
 <body>
 
     <div id="top-bar">
-        <div id="score-box">SCORE: <span id="score-val">0</span></div>
-        <button id="pause-btn" ontouchstart="openMenu()">PAUSE</button>
+        <div id="score-box">SCORE: <span id="score">0</span></div>
+        <button id="pause-btn">PAUSE</button>
     </div>
 
-    <div id="game-container">
-        <canvas id="gc"></canvas>
-    </div>
-
-    <div id="main-menu" class="overlay hidden">
-        <h1>PAUSED</h1>
-        <button class="menu-btn" id="btn-resume" onclick="resumeGame()">RESUME</button>
-        <button class="menu-btn" onclick="newGame()">NEW GAME</button>
-        <button class="menu-btn" onclick="showLeaderboard()">BEST SCORE</button>
-        <button class="menu-btn" onclick="showAbout()">ABOUT</button>
-    </div>
-
-    <div id="lb-menu" class="overlay hidden">
-        <h1>TOP 5</h1>
-        <div id="lb-container"></div>
-        <button class="menu-btn" style="margin-top:30px" onclick="backToMain()">BACK</button>
-    </div>
-
-    <div id="about-menu" class="overlay hidden">
-        <h1>ABOUT</h1>
-        <div id="about-content">
-            I LOVE<br>
-            NOKIA 3310<br><br>
-            <a href="https://github.com/Dad-89" class="heart-link">&hearts;</a>
+    <div id="stage">
+        <div id="phone">
+            <div id="screen" class="debug-border">
+                <canvas id="gc"></canvas>
+            </div>
         </div>
-        <button class="menu-btn" style="margin-top:30px" onclick="backToMain()">BACK</button>
+    </div>
+
+    <div id="touch-zone"></div>
+
+    <div id="menu-main" class="overlay hidden">
+        <h1 id="menu-title">PAUSED</h1>
+        <button class="btn" id="btn-resume">RESUME</button>
+        <button class="btn" id="btn-new">NEW GAME</button>
+        <button class="btn" id="btn-best">BEST SCORE</button>
+        <button class="btn" id="btn-about">ABOUT</button>
+    </div>
+
+    <div id="menu-lb" class="overlay hidden">
+        <h1>TOP 5</h1>
+        <div id="lb-list"></div>
+        <button class="btn" id="btn-back-lb">BACK</button>
+    </div>
+
+    <div id="menu-about" class="overlay hidden">
+        <h1>ABOUT</h1>
+        <div style="text-align:center; line-height:1.5; font-size:18px;">
+            I LOVE<br>NOKIA 3310<br><br>
+            <a href="https://github.com/Dad-89" style="font-size:50px; color:red; text-decoration:none;">&hearts;</a>
+        </div>
+        <button class="btn" id="btn-back-ab">BACK</button>
     </div>
 
 <script>
-    // --- CORE VARIABLES ---
+    // --- ENGINE VARIABLES ---
     const canvas = document.getElementById("gc");
     const ctx = canvas.getContext("2d");
-    const scoreEl = document.getElementById("score-val");
+    const screenDiv = document.getElementById("screen");
     
-    // Menus
-    const mainMenu = document.getElementById("main-menu");
-    const lbMenu = document.getElementById("lb-menu");
-    const aboutMenu = document.getElementById("about-menu");
-    const btnResume = document.getElementById("btn-resume");
-
-    let gridSize = 20;
-    let tileCountX, tileCountY;
+    // Configurazione
+    const GRID_SIZE = 10; // Pixel size
+    const FPS = 15;       // Speed
     
-    // Snake State
-    let px, py;
-    let xv=0, yv=0;
-    let trail = [];
-    let tail = 5;
+    let tileX, tileY; // Dimensioni griglia (calcolate dinamicamente)
+    
+    // Stato Gioco
+    let px, py;       // Posizione Snake
+    let trail = [];   // Corpo Snake
+    let tail = 5;     // Lunghezza
     let score = 0;
-    let ax, ay; // Apple
+    
+    // Velocity & Input Buffer (FIX BUG 1)
+    let xv = 0, yv = 0;       // Velocità corrente
+    let nextX = 1, nextY = 0; // Velocità bufferizzata (prossimo frame)
+    let hasMoved = false;     // Flag: ci siamo mossi in questo frame?
+    
+    let ax, ay;       // Mela
     
     let isPaused = false;
-    let gameInterval;
-    
-    // TOUCH LOGIC VARIABLES
-    let touchStartX = null;
-    let touchStartY = null;
+    let isRunning = false;
+    let gameLoopId;
 
-    // --- INITIALIZATION ---
-    window.onload = () => {
+    // --- SETUP & RESIZE ---
+    function init() {
         resize();
         window.addEventListener('resize', resize);
         
-        // Input Listeners (Keyboard + Touch)
+        // Touch Handlers (FIX BUG 3)
+        const touchZone = document.getElementById("touch-zone");
+        touchZone.addEventListener('touchstart', handleTouchStart, {passive: false});
+        touchZone.addEventListener('touchmove', handleTouchMove, {passive: false});
+        
+        // Keyboard Handlers
         document.addEventListener('keydown', handleKey);
         
-        // *** THE MAGIC MOVEMENT LISTENER ***
-        // Usiamo touchmove per reattività istantanea
-        const gameArea = document.getElementById("game-container");
-        gameArea.addEventListener('touchstart', handleTouchStart, {passive: false});
-        gameArea.addEventListener('touchmove', handleTouchMove, {passive: false});
-        
-        // Init Leaderboard if empty
+        // Buttons
+        document.getElementById("pause-btn").onclick = togglePause;
+        document.getElementById("btn-resume").onclick = togglePause;
+        document.getElementById("btn-new").onclick = startNewGame;
+        document.getElementById("btn-best").onclick = showLeaderboard;
+        document.getElementById("btn-about").onclick = showAbout;
+        document.getElementById("btn-back-lb").onclick = openMainMenu;
+        document.getElementById("btn-back-ab").onclick = openMainMenu;
+
         initLeaderboard();
-        
-        // Start Game
-        newGame();
-    };
+        startNewGame();
+    }
 
     function resize() {
-        // Calcola la grandezza del canvas basandosi sul container (che è sotto la barra nera)
-        const container = document.getElementById("game-container");
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
+        // Allinea canvas al div "screen"
+        canvas.width = screenDiv.clientWidth;
+        canvas.height = screenDiv.clientHeight;
         
-        tileCountX = Math.floor(canvas.width / gridSize);
-        tileCountY = Math.floor(canvas.height / gridSize);
+        tileX = Math.floor(canvas.width / GRID_SIZE);
+        tileY = Math.floor(canvas.height / GRID_SIZE);
     }
 
-    // --- GAME LOGIC ---
-    function newGame() {
-        score = 0;
-        tail = 5;
-        trail = [];
-        xv = 1; yv = 0; // Parte andando a destra
-        scoreEl.innerText = 0;
+    // --- GAME LOOP ---
+    function startNewGame() {
+        closeMenus();
+        // Rimuovi bordo rosso di debug dopo il primo avvio
+        screenDiv.classList.remove("debug-border");
         
-        px = Math.floor(tileCountX / 2);
-        py = Math.floor(tileCountY / 2);
+        // Reset Stato
+        score = 0; document.getElementById("score").innerText = "0";
+        tail = 5; trail = [];
         
-        closeAllMenus();
+        // Centro
+        resize(); // Sicurezza
+        px = Math.floor(tileX / 2);
+        py = Math.floor(tileY / 2);
+        
+        // Start Right
+        xv = 1; yv = 0;
+        nextX = 1; nextY = 0;
+        
         spawnApple();
         
-        if(gameInterval) clearInterval(gameInterval);
-        gameInterval = setInterval(gameLoop, 1000/12); // 12 FPS
+        isRunning = true;
         isPaused = false;
+        
+        if(gameLoopId) clearInterval(gameLoopId);
+        gameLoopId = setInterval(update, 1000/FPS);
     }
 
-    function resumeGame() {
-        closeAllMenus();
-        isPaused = false;
-    }
+    function update() {
+        if(isPaused || !isRunning) return;
 
-    function gameLoop() {
-        if(isPaused) return;
+        // APPLICAZIONE INPUT (Bufferizzato)
+        xv = nextX;
+        yv = nextY;
+        hasMoved = false; // Reset flag per il nuovo frame
 
+        // MOVIMENTO
         px += xv;
         py += yv;
 
-        // WRAP (Passa muri)
-        if(px < 0) px = tileCountX - 1;
-        if(px > tileCountX - 1) px = 0;
-        if(py < 0) py = tileCountY - 1;
-        if(py > tileCountY - 1) py = 0;
+        // WRAP (Muri infiniti)
+        if(px < 0) px = tileX - 1;
+        if(px > tileX - 1) px = 0;
+        if(py < 0) py = tileY - 1;
+        if(py > tileY - 1) py = 0;
 
-        // Background
+        // BACKGROUND
         ctx.fillStyle = "#879c85";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Snake
-        ctx.fillStyle = "#000";
+        // DISEGNA SNAKE
+        ctx.fillStyle = "#112211"; // Nokia Blackish
         for(let i=0; i<trail.length; i++) {
-            ctx.fillRect(trail[i].x * gridSize, trail[i].y * gridSize, gridSize-2, gridSize-2);
+            ctx.fillRect(trail[i].x * GRID_SIZE, trail[i].y * GRID_SIZE, GRID_SIZE-1, GRID_SIZE-1);
             
-            // Self Collision
+            // COLLISIONE (Self)
             if(trail[i].x === px && trail[i].y === py) {
-                if(tail > 5) gameOver(); // Muori solo se sei "lungo"
+                // Ignora collisione se stiamo "uscendo" dalla coda (bug visivo raro)
+                if(tail > 5) gameOver();
             }
         }
 
         trail.push({x: px, y: py});
         while(trail.length > tail) trail.shift();
 
-        // Apple
+        // MANGIA MELA
         if(ax === px && ay === py) {
             tail++;
             score++;
-            scoreEl.innerText = score;
+            document.getElementById("score").innerText = score;
+            vibrate(20); // Feedback tattile leggero
             spawnApple();
         }
-        ctx.fillRect(ax*gridSize, ay*gridSize, gridSize-2, gridSize-2);
+
+        // DISEGNA MELA
+        ctx.fillStyle = "#000";
+        ctx.fillRect(ax*GRID_SIZE, ay*GRID_SIZE, GRID_SIZE, GRID_SIZE);
     }
 
+    // FIX BUG 2: SPAWN INTELLIGENTE
     function spawnApple() {
-        ax = Math.floor(Math.random() * tileCountX);
-        ay = Math.floor(Math.random() * tileCountY);
+        let valid = false;
+        while(!valid) {
+            ax = Math.floor(Math.random() * tileX);
+            ay = Math.floor(Math.random() * tileY);
+            
+            valid = true;
+            // Controlla se è sopra il serpente
+            for(let t of trail) {
+                if(t.x === ax && t.y === ay) {
+                    valid = false;
+                    break;
+                }
+            }
+        }
     }
 
     function gameOver() {
-        isPaused = true;
+        vibrate(200); // Feedback tattile lungo
+        isRunning = false;
         saveScore(score);
-        document.querySelector("#main-menu h1").innerText = "GAME OVER";
-        btnResume.style.display = "none"; // Non puoi fare resume se morto
-        mainMenu.classList.remove("hidden");
+        document.getElementById("menu-title").innerText = "GAME OVER";
+        document.getElementById("btn-resume").style.display = "none";
+        document.getElementById("menu-main").classList.remove("hidden");
     }
 
-    // --- MOVEMENT ENGINE (INSTANT SWIPE) ---
+    // --- INPUT HANDLING (BUFFER SYSTEM) ---
+    // Questo sistema impedisce al serpente di girarsi di 180° in un frame
+    
+    let touchX, touchY;
+
     function handleTouchStart(e) {
-        // Salva punto iniziale
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
+        e.preventDefault();
+        touchX = e.touches[0].clientX;
+        touchY = e.touches[0].clientY;
     }
 
     function handleTouchMove(e) {
-        if(isPaused) return;
-        e.preventDefault(); // Blocca lo scroll della pagina
+        if(isPaused || !isRunning) return;
+        e.preventDefault();
+        
+        if(!touchX || !touchY) return;
 
-        if (!touchStartX || !touchStartY) return;
+        let curX = e.touches[0].clientX;
+        let curY = e.touches[0].clientY;
+        let dx = curX - touchX;
+        let dy = curY - touchY;
 
-        let touchEndX = e.touches[0].clientX;
-        let touchEndY = e.touches[0].clientY;
+        // Sensibilità swipe
+        if(Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+            // Se abbiamo già processato un input in questo frame tick, ignoriamo (evita suicidio)
+            if(hasMoved) return; 
 
-        let dx = touchEndX - touchStartX;
-        let dy = touchEndY - touchStartY;
-
-        // SOGLIA DI SENSIBILITÀ (15 pixel)
-        // Se ti sei mosso di almeno 15px, cambia direzione
-        if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
-            
-            if (Math.abs(dx) > Math.abs(dy)) {
-                // Orizzontale
-                input(dx > 0 ? 1 : -1, 0);
+            if(Math.abs(dx) > Math.abs(dy)) {
+                changeDir(dx > 0 ? 1 : -1, 0);
             } else {
-                // Verticale
-                input(0, dy > 0 ? 1 : -1);
+                changeDir(0, dy > 0 ? 1 : -1);
             }
             
-            // RESET CONTINUO
-            // Questo è il trucco: resetto il punto di partenza alle nuove coordinate.
-            // Così se continui a girare il dito, il serpente continua a seguire
-            // senza dover alzare il dito.
-            touchStartX = touchEndX;
-            touchStartY = touchEndY;
+            // Reset per continuous tracking
+            touchX = curX;
+            touchY = curY;
         }
-    }
-
-    function input(x, y) {
-        // Anti-inversione
-        if (x === -xv && x !== 0) return;
-        if (y === -yv && y !== 0) return;
-        xv = x;
-        yv = y;
     }
 
     function handleKey(e) {
-        switch(e.keyCode) {
-            case 37: input(-1, 0); break;
-            case 38: input(0, -1); break;
-            case 39: input(1, 0); break;
-            case 40: input(0, 1); break;
-            case 80: openMenu(); break; // P
+        switch(e.key) {
+            case 'ArrowLeft': changeDir(-1, 0); break;
+            case 'ArrowUp': changeDir(0, -1); break;
+            case 'ArrowRight': changeDir(1, 0); break;
+            case 'ArrowDown': changeDir(0, 1); break;
+            case 'p': togglePause(); break;
         }
     }
 
-    // --- MENU SYSTEM ---
-    function openMenu() {
-        isPaused = true;
-        document.querySelector("#main-menu h1").innerText = "PAUSED";
-        btnResume.style.display = "block"; // Riabilita resume
-        mainMenu.classList.remove("hidden");
+    function changeDir(x, y) {
+        // NON permettere inversione di 180° rispetto alla velocità CORRENTE (xv, yv)
+        if(x === -xv && x !== 0) return;
+        if(y === -yv && y !== 0) return;
+        
+        // Se passa il controllo, imposta la velocità per il PROSSIMO frame
+        nextX = x;
+        nextY = y;
+        hasMoved = true; // Input accettato per questo frame
+        vibrate(5); // Micro feedback
     }
 
-    function closeAllMenus() {
-        mainMenu.classList.add("hidden");
-        lbMenu.classList.add("hidden");
-        aboutMenu.classList.add("hidden");
+    function vibrate(ms) {
+        if(navigator.vibrate) navigator.vibrate(ms);
     }
 
-    function backToMain() {
-        closeAllMenus();
-        mainMenu.classList.remove("hidden");
+    // --- MENU LOGIC ---
+    function togglePause() {
+        if(!isRunning && document.getElementById("menu-title").innerText === "GAME OVER") return;
+        
+        if(isPaused) {
+            closeMenus();
+            isPaused = false;
+        } else {
+            isPaused = true;
+            document.getElementById("menu-title").innerText = "PAUSED";
+            document.getElementById("btn-resume").style.display = "block";
+            document.getElementById("menu-main").classList.remove("hidden");
+        }
+    }
+
+    function closeMenus() {
+        document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+    }
+    
+    function openMainMenu() {
+        closeMenus();
+        document.getElementById("menu-main").classList.remove("hidden");
     }
 
     function showLeaderboard() {
-        closeAllMenus();
+        closeMenus();
         renderLeaderboard();
-        lbMenu.classList.remove("hidden");
+        document.getElementById("menu-lb").classList.remove("hidden");
     }
 
     function showAbout() {
-        closeAllMenus();
-        aboutMenu.classList.remove("hidden");
+        closeMenus();
+        document.getElementById("menu-about").classList.remove("hidden");
     }
 
-    // --- LEADERBOARD & DATA ---
-    const LB_KEY = 'snake_ultra_lb';
-
+    // --- STORAGE ---
+    const LB_KEY = 'snake_3310_perfect_lb';
+    
     function initLeaderboard() {
         if(!localStorage.getItem(LB_KEY)) {
             const defaults = [
-                { n: 'AAAAAAAAA', s: 99999 }, // Easter Egg
-                { n: 'SNAKE_KING', s: 250 },
-                { n: 'LUCY_RETRO', s: 150 },
-                { n: 'MARIO_8BIT', s: 100 },
-                { n: 'NOKIA_FAN', s: 50 }
+                { n: 'AAAAAAAAA', s: 999999 },
+                { n: 'HACKER_MAN', s: 500 },
+                { n: 'OLD_SCHOOL', s: 250 },
+                { n: 'NOKIA_3310', s: 100 },
+                { n: 'GUEST', s: 10 }
             ];
             localStorage.setItem(LB_KEY, JSON.stringify(defaults));
         }
     }
 
-    function saveScore(newScore) {
+    function saveScore(s) {
         let data = JSON.parse(localStorage.getItem(LB_KEY));
-        // Se il punteggio entra in classifica
-        if(newScore > data[data.length-1].s) {
-            let name = prompt("NEW RECORD! Name:", "PLAYER");
+        if(s > data[data.length-1].s) {
+            let name = prompt("NEW HIGHSCORE! Name:", "PLAYER");
             if(!name) name = "UNKNOWN";
             name = name.substring(0, 10).toUpperCase();
-            
-            data.push({n: name, s: newScore});
+            data.push({n: name, s: s});
             data.sort((a,b) => b.s - a.s);
-            data = data.slice(0, 5); // Keep top 5
+            data = data.slice(0, 5);
             localStorage.setItem(LB_KEY, JSON.stringify(data));
         }
     }
 
     function renderLeaderboard() {
         let data = JSON.parse(localStorage.getItem(LB_KEY));
-        let container = document.getElementById("lb-container");
-        container.innerHTML = "";
-        
+        let list = document.getElementById("lb-list");
+        list.innerHTML = "";
         data.forEach((item, i) => {
             let row = document.createElement("div");
-            // Applica stile speciale al primo (Easter egg)
-            row.className = (i === 0 && item.s === 99999) ? "lb-row lb-top" : "lb-row";
+            row.className = "lb-row";
+            if(i===0 && item.s === 999999) row.classList.add("gold-score");
             row.innerHTML = `<span>${i+1}. ${item.n}</span><span>${item.s}</span>`;
-            container.appendChild(row);
+            list.appendChild(row);
         });
     }
+
+    window.onload = init;
 
 </script>
 </body>
