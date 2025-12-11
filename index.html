@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Snake 3310 Final</title>
+    <title>Snake 3310 Remastered</title>
     <style>
-        /* --- AMBIENTE (TAVOLO) --- */
+        /* --- LAYOUT GENERALE --- */
         body {
-            /* Sfondo scuro neutro per far risaltare il telefono */
-            background: radial-gradient(circle at center, #2b323c 0%, #101010 100%);
+            background: #222; /* Sfondo scuro per far risaltare il telefono */
             margin: 0;
             overflow: hidden;
             position: fixed;
@@ -24,66 +23,75 @@
             touch-action: none;
         }
 
+        /* --- BLOCCO ORIENTAMENTO --- */
+        #orientation-lock {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999;
+            color: #fff; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; font-size: 24px; font-weight: bold;
+        }
+        /* Se lo schermo è più largo che alto (Landscape) */
+        @media screen and (orientation: landscape) {
+            #orientation-lock { display: flex; }
+        }
+
         /* --- TOP BAR --- */
         #top-bar {
             position: absolute;
-            top: 0; left: 0; width: 100%;
-            height: 60px;
+            top: 0; left: 0; width: 100%; height: 60px;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 20px; box-sizing: border-box;
-            z-index: 100;
-            pointer-events: none;
+            z-index: 100; pointer-events: none;
         }
         #score-box { 
-            color: #c7f0d8; font-weight: bold; font-size: 22px; 
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            color: #c7f0d8; font-weight: bold; font-size: 24px; 
+            text-shadow: 2px 2px 0 #000;
         }
         #pause-btn {
             pointer-events: auto;
-            background: #879c85; color: #000; 
-            border: 2px solid #000;
-            padding: 8px 20px; font-weight: bold; border-radius: 20px;
-            font-size: 14px; cursor: pointer;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.5);
+            background: #879c85; color: #000; border: 3px solid #000;
+            padding: 8px 16px; font-weight: bold; border-radius: 10px;
+            font-size: 16px; cursor: pointer; text-transform: uppercase;
         }
-        #pause-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5); }
 
-        /* --- IL TELEFONO (FUSTELLA) --- */
-        #phone-body {
+        /* --- IL CONTENITORE "FUSTELLA" (Maschera) --- */
+        #phone-mask {
             position: relative;
-            /* Dimensioni fisse relative per mantenere le proporzioni 3310 */
-            width: 90vw; 
-            max-width: 420px; 
-            aspect-ratio: 9 / 19; /* Leggermente più alto per includere tutto */
+            width: 95vw; 
+            max-width: 450px; 
+            aspect-ratio: 9 / 18.5; /* Ratio del 3310 */
             
-            /* RITAGLIO DEI BORDI BIANCHI DEL JPG */
-            border-radius: 50px; /* Curvatura forte agli angoli */
+            /* Questo crea la forma del telefono e taglia via la scacchiera */
+            border-radius: 50px; 
+            overflow: hidden; 
             
-            background-image: url('nokia_frame.JPG'); /* FILE RICHIESTO */
+            /* Ombra per staccarlo dal fondo scuro */
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        /* --- L'IMMAGINE DEL TELEFONO --- */
+        #phone-bg {
+            width: 100%;
+            height: 100%;
+            background-image: url('nokia_frame.JPG'); /* Assicurati del nome file */
             background-position: center;
             background-repeat: no-repeat;
             
-            /* ZOOM: 102% per assicurarsi che i bordi bianchi escano fuori dal ritaglio */
-            background-size: 102%; 
-            
-            overflow: hidden; /* Taglia via tutto ciò che esce dalla curvatura */
-            
-            /* Ombra per staccarlo dallo sfondo */
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            /* ZOOM TATTICO: 112% spinge la scacchiera fuori dalla maschera */
+            background-size: 112%; 
         }
 
-        /* --- LO SCHERMO DI GIOCO (CALIBRATO SULLE LINEE ROSSE) --- */
+        /* --- LO SCHERMO DI GIOCO (Dimensioni basate sulle linee rosse) --- */
         #screen-container {
             position: absolute;
-            /* Coordinate ricalcolate sul disegno rosso */
-            top: 26%;     /* Più in alto di prima */
-            left: 21%;    /* Più a sinistra per allargare */
-            width: 58%;   /* Più largo */
-            height: 28%;  /* Più alto per coprire l'area verde */
+            /* Coordinate espanse per coprire l'area verde */
+            top: 27.5%; 
+            left: 18.5%; 
+            width: 63%; 
+            height: 26%; 
             
             background-color: #879c85; 
-            border-radius: 5px; 
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
             z-index: 10;
         }
 
@@ -94,53 +102,56 @@
 
         /* --- TOUCH LAYER --- */
         #touch-surface {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 50;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50;
         }
 
         /* --- MENU OVERLAYS --- */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 500;
+            background: rgba(0,0,0,0.92); z-index: 500;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #879c85; font-family: 'Courier New', monospace;
-            backdrop-filter: blur(5px);
+            color: #879c85;
         }
         .hidden { display: none !important; }
         
-        h1 { font-size: 36px; margin-bottom: 30px; border-bottom: 2px solid #879c85; }
+        h1 { font-size: 40px; margin-bottom: 30px; border-bottom: 4px solid #879c85; text-transform: uppercase;}
         
         .menu-btn {
-            width: 250px; padding: 15px; margin: 10px;
-            background: transparent; border: 3px solid #879c85;
-            color: #879c85; font-weight: bold; font-size: 20px;
-            cursor: pointer;
+            width: 260px; padding: 20px; margin: 10px;
+            background: #000; border: 4px solid #879c85;
+            color: #879c85; font-weight: bold; font-size: 22px;
+            font-family: inherit; cursor: pointer;
         }
         .menu-btn:active { background: #879c85; color: #000; }
         
         .gold { color: #ffd700; text-shadow: 0 0 10px orange; }
-        .lb-row { width: 280px; display: flex; justify-content: space-between; border-bottom: 1px dashed #555; padding: 10px 0; font-size: 18px; }
+        .lb-row { width: 300px; display: flex; justify-content: space-between; border-bottom: 1px dashed #555; padding: 12px 0; font-size: 20px; }
 
     </style>
 </head>
 <body>
 
-    <div id="top-bar">
-        <div id="score-box">SCORE: <span id="score">0</span></div>
-        <button id="pause-btn">PAUSE</button>
+    <div id="orientation-lock">
+        <p>⚠️<br>RUOTA IL TELEFONO<br>IN VERTICALE</p>
     </div>
 
-    <div id="phone-body">
-        <div id="screen-container">
-            <canvas id="gc"></canvas>
+    <div id="top-bar">
+        <div id="score-box">SCORE: <span id="score">0</span></div>
+        <button id="pause-btn">MENU</button>
+    </div>
+
+    <div id="phone-mask">
+        <div id="phone-bg">
+            <div id="screen-container">
+                <canvas id="gc"></canvas>
+            </div>
         </div>
     </div>
 
     <div id="touch-surface"></div>
 
     <div id="menu-main" class="overlay hidden">
-        <h1>PAUSED</h1>
+        <h1 id="menu-title">PAUSED</h1>
         <button class="menu-btn" id="btn-resume">RESUME</button>
         <button class="menu-btn" id="btn-new">NEW GAME</button>
         <button class="menu-btn" id="btn-best">BEST SCORE</button>
@@ -156,19 +167,23 @@
     <div id="menu-about" class="overlay hidden">
         <h1>ABOUT</h1>
         <div style="text-align:center; line-height:1.6; font-size:20px;">
-            PURE NOKIA<br>EXPERIENCE<br><br>
-            <a href="https://github.com/Dad-89" style="font-size:60px; color:#ff4444; text-decoration:none; display:block; animation: pulse 1s infinite;">&hearts;</a>
+            SNAKE 3310<br>REMASTERED<br><br>
+            <a href="https://github.com/Dad-89" style="font-size:70px; color:#ff4444; text-decoration:none; display:block; animation: pulse 1s infinite;">&hearts;</a>
         </div>
         <button class="menu-btn" id="btn-back-ab">BACK</button>
     </div>
+
     <style>@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }</style>
 
 <script>
+    /* --- ENGINE --- */
     const canvas = document.getElementById("gc");
     const ctx = canvas.getContext("2d");
     const screenCont = document.getElementById("screen-container");
     
-    const GRID = 10; const FPS = 15;
+    const GRID = 10; 
+    const FPS = 15;
+    
     let tX, tY, px, py, trail=[], tail=5, score=0;
     let xv=0, yv=0, nextX=1, nextY=0, hasMoved=false;
     let ax, ay, isPaused=false, isRunning=false, loopId;
@@ -182,8 +197,9 @@
         surf.addEventListener('touchmove', handleMove, {passive:false});
         document.addEventListener('keydown', handleKey);
         
-        document.getElementById("pause-btn").onclick = togglePause;
-        document.getElementById("btn-resume").onclick = togglePause;
+        // Buttons
+        document.getElementById("pause-btn").onclick = openMenuPause; // Tasto in alto
+        document.getElementById("btn-resume").onclick = resumeGame;
         document.getElementById("btn-new").onclick = startNew;
         document.getElementById("btn-best").onclick = showLb;
         document.getElementById("btn-about").onclick = showAb;
@@ -200,7 +216,8 @@
     }
 
     function startNew() {
-        closeMenus(); score=0; document.getElementById("score").innerText="0";
+        closeMenus();
+        score=0; document.getElementById("score").innerText="0";
         tail=5; trail=[]; resize();
         px = Math.floor(tX/2); py = Math.floor(tY/2);
         xv=1; yv=0; nextX=1; nextY=0; spawnApple();
@@ -212,9 +229,14 @@
         if(isPaused || !isRunning) return;
         xv=nextX; yv=nextY; hasMoved=false;
         px+=xv; py+=yv;
+        
+        // Wrap
         if(px<0) px=tX-1; if(px>tX-1) px=0; if(py<0) py=tY-1; if(py>tY-1) py=0;
 
+        // Draw
         ctx.fillStyle="#879c85"; ctx.fillRect(0,0,canvas.width,canvas.height);
+        
+        // Snake
         ctx.fillStyle="#1a2e1a";
         for(let i=0; i<trail.length; i++) {
             ctx.fillRect(trail[i].x*GRID, trail[i].y*GRID, GRID-0.5, GRID-0.5);
@@ -222,6 +244,7 @@
         }
         trail.push({x:px, y:py}); while(trail.length>tail) trail.shift();
 
+        // Apple
         if(ax===px && ay===py) {
             tail++; score++; document.getElementById("score").innerText=score;
             if(navigator.vibrate) navigator.vibrate(20); spawnApple();
@@ -237,14 +260,21 @@
         }
     }
 
+    // --- GAME OVER LOGIC (FIXED) ---
     function gameOver() {
-        if(navigator.vibrate) navigator.vibrate(200);
-        isRunning=false; saveScore(score);
-        document.getElementById("menu-title").innerText="GAME OVER";
-        document.getElementById("btn-resume").style.display="none";
+        if(navigator.vibrate) navigator.vibrate(400); // Vibrazione lunga
+        isRunning=false; 
+        saveScore(score);
+        
+        // Modifica il Menu per Game Over
+        document.getElementById("menu-title").innerText = "GAME OVER";
+        document.getElementById("btn-resume").style.display = "none"; // Nascondi Resume
+        
+        // Apri Menu
         document.getElementById("menu-main").classList.remove("hidden");
     }
 
+    // --- INPUT ---
     let tStartX;
     function handleStart(e) { e.preventDefault(); tStartX=e.touches[0].clientX; tStartY=e.touches[0].clientY; }
     function handleMove(e) {
@@ -261,7 +291,7 @@
         switch(e.key) {
             case 'ArrowLeft': change(-1,0); break; case 'ArrowUp': change(0,-1); break;
             case 'ArrowRight': change(1,0); break; case 'ArrowDown': change(0,1); break;
-            case 'p': togglePause(); break;
+            case 'p': openMenuPause(); break;
         }
     }
     function change(x,y) {
@@ -269,28 +299,38 @@
         nextX=x; nextY=y; hasMoved=true;
     }
 
-    function togglePause() {
-        if(!isRunning && document.getElementById("menu-title").innerText==="GAME OVER") return;
-        isPaused=!isPaused;
-        if(isPaused) {
-            document.getElementById("menu-title").innerText="PAUSED";
-            document.getElementById("btn-resume").style.display="block";
-            openMain();
-        } else closeMenus();
+    // --- MENUS ---
+    function openMenuPause() {
+        if(!isRunning && document.getElementById("menu-title").innerText==="GAME OVER") {
+             // Se clicco menu mentre sono in game over, riapro il menu game over
+             document.getElementById("menu-main").classList.remove("hidden");
+             return;
+        }
+        
+        isPaused = true;
+        document.getElementById("menu-title").innerText="PAUSED";
+        document.getElementById("btn-resume").style.display="block"; // Mostra Resume
+        openMain();
     }
+
+    function resumeGame() {
+        closeMenus();
+        isPaused = false;
+    }
+
     function closeMenus() { document.querySelectorAll('.overlay').forEach(e=>e.classList.add('hidden')); }
     function openMain() { closeMenus(); document.getElementById("menu-main").classList.remove("hidden"); }
     function showLb() { closeMenus(); renderLb(); document.getElementById("menu-lb").classList.remove("hidden"); }
     function showAb() { closeMenus(); document.getElementById("menu-about").classList.remove("hidden"); }
 
-    const LB_KEY='snake_final_lb';
+    const LB_KEY='snake_remaster_lb';
     function initLb() {
         if(!localStorage.getItem(LB_KEY)) localStorage.setItem(LB_KEY, JSON.stringify([
-            {n:'AAAAAAAAA',s:999999}, {n:'PRO_GAMER',s:500}, {n:'OLD_SKOOL',s:200}, {n:'NOKIA',s:50}, {n:'GUEST',s:10}
+            {n:'AAAAAAAAA',s:999999}, {n:'HACKER',s:500}, {n:'RETRO',s:200}, {n:'NOKIA',s:50}, {n:'USER',s:10}
         ]));
     }
     function saveScore(s) {
-        let d=JSON.parse(localStorage.getItem(LB_KEY));
+        let d = JSON.parse(localStorage.getItem(LB_KEY));
         if(s>d[d.length-1].s) {
             let n=prompt("HIGHSCORE! Name:","PLAYER"); if(!n) n="UNKNOWN";
             d.push({n:n.substring(0,10).toUpperCase(),s:s}); d.sort((a,b)=>b.s-a.s);
