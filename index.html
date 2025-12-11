@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Snake 3310 Authentic</title>
+    <title>Snake 3310 Full Screen</title>
     <style>
         /* --- LAYOUT GENERALE --- */
         body {
@@ -76,24 +76,22 @@
             background-size: 128%; 
         }
 
-        /* --- SCHERMO DI GIOCO (IRREGOLARE) --- */
+        /* --- SCHERMO DI GIOCO (MASSIMIZZATO AREA GIALLA) --- */
         #screen-container {
             position: absolute;
             
-            /* COORDINATE PER L'AREA DI GIOCO */
-            top: 23%;
-            left: 13%;
-            width: 74%;
-            height: 33%;
+            /* COORDINATE ESTREME PER RIEMPIRE TUTTO IL VETRO */
+            top: 23%;       /* In alto subito sotto la scritta NOKIA */
+            left: 13%;      /* Tutto a sinistra quasi sul bordo blu */
+            width: 74%;     /* Larghezza massima da lato a lato */
+            height: 33%;    /* Altezza massima fino alla curva dei tasti */
             
             background-color: #879c85; 
             
-            /* Applica la maschera SVG per la forma irregolare */
-            clip-path: url(#screen-mask-path);
-            /* -webkit-clip-path per compatibilità Safari */
-            -webkit-clip-path: url(#screen-mask-path);
-
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.15);
+            /* Curvatura Asimmetrica: Sopra leggero, Sotto curvo (forma a scudo) */
+            border-radius: 15px 15px 50px 50px; 
+            
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
             z-index: 10;
         }
 
@@ -131,26 +129,9 @@
         .gold { color: #ffd700; text-shadow: 0 0 10px orange; }
         .lb-row { width: 300px; display: flex; justify-content: space-between; border-bottom: 1px dashed #555; padding: 12px 0; font-size: 20px; }
 
-        /* Nascondi l'SVG che definisce la clip-path */
-        #svg-mask-container {
-            position: absolute;
-            width: 0;
-            height: 0;
-        }
-
     </style>
 </head>
 <body>
-
-    <div id="svg-mask-container">
-        <svg width="0" height="0">
-            <defs>
-                <clipPath id="screen-mask-path" clipPathUnits="objectBoundingBox">
-                    <path d="M 0.05,0.05 Q 0.5,0 0.95,0.05 L 0.98,0.9 Q 0.95,1 0.5,1 Q 0.05,1 0.02,0.9 Z" />
-                </clipPath>
-            </defs>
-        </svg>
-    </div>
 
     <div id="orientation-lock">
         <p>⚠️<br>RUOTA IL TELEFONO<br>IN VERTICALE</p>
