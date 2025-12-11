@@ -3,120 +3,131 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Nokia Snake 3310 Real</title>
+    <title>Snake Fullscreen Pure</title>
     <style>
         body {
-            background-color: #eee;
+            background-color: #879c85; /* Nokia Green */
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            touch-action: none;
             overflow: hidden;
+            touch-action: none; /* No scroll/zoom */
             font-family: 'Courier New', monospace;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        #phone-container {
-            position: relative;
-            width: auto;
-            height: 95vh;
-            aspect-ratio: 405 / 833;
-            background-image: url('IMG_0746.png'); /* Nome immagine confermato */
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-        }
-
-        /* Schermo LCD */
-        #game-screen-wrapper {
+        /* HUD in alto (Punteggio) */
+        #hud {
             position: absolute;
-            top: 24%;
-            left: 17%;
-            width: 65%;
-            height: 23%;
-            background-color: #879c85;
-            overflow: hidden;
-            z-index: 1;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 18px;
+            color: #000;
+            z-index: 20;
+            pointer-events: none; /* Lascia passare i click */
         }
 
+        /* Pulsante Pausa Visibile (piccolo in alto) */
+        #btn-pause-ui {
+            pointer-events: auto;
+            border: 2px solid #000;
+            background: transparent;
+            font-weight: bold;
+            font-family: inherit;
+            padding: 2px 8px;
+        }
+
+        /* Area di Gioco */
         canvas {
             display: block;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             image-rendering: pixelated;
         }
 
-        #in-game-ui {
+        /* --- CONTROLLI INVISIBILI (Smart Touch Zones) --- */
+        #controls-layer {
             position: absolute;
-            top: 2px;
-            right: 4px;
-            text-align: right;
-            font-size: 10px;
-            color: #000;
-            font-weight: bold;
-            line-height: 1.1;
-            pointer-events: none;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 45%; /* Occupa quasi metà schermo in basso */
+            z-index: 50;
+            /* background: rgba(255,0,0,0.2); /* <--- SCOMMENTA PER VEDERE LE AREE (DEBUG) */
         }
 
-        #game-over-message {
+        .touch-zone {
+            position: absolute;
+            /* border: 1px dashed white; /* DEBUG */
+        }
+
+        /* Disposizione a Croce (D-Pad Invisibile) */
+        #zone-up {
+            top: 0; left: 33.3%; width: 33.3%; height: 50%;
+        }
+        #zone-down {
+            bottom: 0; left: 33.3%; width: 33.3%; height: 50%;
+        }
+        #zone-left {
+            top: 25%; left: 0; width: 33.3%; height: 50%;
+        }
+        #zone-right {
+            top: 25%; right: 0; width: 33.3%; height: 50%;
+        }
+
+        /* Feedback Tocco (Opzionale: leggero flash quando premi) */
+        .touch-zone:active {
+            background: rgba(0,0,0,0.1);
+        }
+
+        /* Overlay Messaggi (Game Over / Pausa) */
+        #overlay {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 14px; font-weight: bold;
-            text-align: center; display: none;
-            width: 100%;
+            text-align: center;
+            display: none;
+            z-index: 60;
+            background: rgba(135, 156, 133, 0.9);
+            padding: 20px;
+            border: 4px solid #000;
         }
-
-        /* --- TASTI FANTASMA (Mappatura Fisica 3310) --- */
-        .ghost-key {
-            position: absolute;
-            /* background: rgba(255, 0, 0, 0.4); /* <--- Togli commento per DEBUG visivo tasti */
-            z-index: 10;
-            touch-action: manipulation;
-            border-radius: 50%;
+        h1 { margin: 0 0 10px 0; font-size: 30px; }
+        p { font-size: 14px; font-weight: bold; margin-bottom: 20px; }
+        .action-btn {
+            background: #000; color: #879c85;
+            border: none; padding: 10px 20px;
+            font-size: 18px; font-family: inherit; font-weight: bold;
+            cursor: pointer;
         }
-        
-        /* Feedback visivo al tocco */
-        .ghost-key:active { background: rgba(255, 255, 255, 0.3); }
-
-        /* MAPPATURA PRECISA */
-        /* Tasto C / Cornetta (Sinistra sopra i numeri) */
-        #key-pause { top: 48%; left: 20%; width: 20%; height: 6%; border-radius: 10px; transform: rotate(-15deg); }
-
-        /* Tasto 2 (SU) */
-        #key-2-up { top: 56.5%; left: 38%; width: 24%; height: 6.5%; }
-
-        /* Tasto 4 (SINISTRA) */
-        #key-4-left { top: 64%; left: 14%; width: 24%; height: 6.5%; }
-
-        /* Tasto 5 (Enter/Ok - Opzionale) */
-        #key-5-ok { top: 64%; left: 38%; width: 24%; height: 6.5%; }
-
-        /* Tasto 6 (DESTRA) */
-        #key-6-right { top: 64%; left: 62%; width: 24%; height: 6.5%; }
-
-        /* Tasto 8 (GIU) */
-        #key-8-down { top: 71.5%; left: 38%; width: 24%; height: 6.5%; }
 
     </style>
 </head>
 <body>
 
-<div id="phone-container">
-    <div id="game-screen-wrapper">
-        <div id="in-game-ui">
-            SCORE<br><span id="score-val">0</span><br>
-            BEST<br><span id="best-val">0</span>
-        </div>
-        <div id="game-over-message">GAME OVER</div>
-        <canvas id="gc"></canvas>
-    </div>
+<div id="hud">
+    <span>SCORE: <span id="score-val">0</span></span>
+    <button id="btn-pause-ui" ontouchstart="togglePause()">II</button>
+</div>
 
-    <div id="key-pause" class="ghost-key" ontouchstart="togglePause()"></div> <div id="key-2-up" class="ghost-key" ontouchstart="input(0, -1)"></div>
-    <div id="key-4-left" class="ghost-key" ontouchstart="input(-1, 0)"></div>
-    <div id="key-6-right" class="ghost-key" ontouchstart="input(1, 0)"></div>
-    <div id="key-8-down" class="ghost-key" ontouchstart="input(0, 1)"></div>
+<canvas id="gc"></canvas>
+
+<div id="controls-layer">
+    <div id="zone-up" class="touch-zone" ontouchstart="input(0, -1, event)"></div>
+    <div id="zone-down" class="touch-zone" ontouchstart="input(0, 1, event)"></div>
+    <div id="zone-left" class="touch-zone" ontouchstart="input(-1, 0, event)"></div>
+    <div id="zone-right" class="touch-zone" ontouchstart="input(1, 0, event)"></div>
+</div>
+
+<div id="overlay">
+    <h1 id="overlay-title">PAUSED</h1>
+    <p>BEST: <span id="best-val">0</span></p>
+    <button class="action-btn" onclick="togglePause()">RESUME</button>
 </div>
 
 <script>
@@ -124,53 +135,81 @@
     const ctx = canvas.getContext("2d");
     const scoreValEl = document.getElementById("score-val");
     const bestValEl = document.getElementById("best-val");
-    const gameOverMsg = document.getElementById("game-over-message");
+    const overlay = document.getElementById("overlay");
+    const overlayTitle = document.getElementById("overlay-title");
 
-    // Grid System
-    const gridSize = 10; 
-    const tileCountX = 28; 
-    const tileCountY = 18;
-
-    let px = 14, py = 9;
-    let xv = 0, yv = 0;
+    // Configurazione
+    let gridSize = 20; // Pixel grandi
+    let tileCountX, tileCountY;
+    
+    // Stato
+    let px, py;
+    let xv=0, yv=0;
     let trail = [];
     let tail = 5;
     let score = 0;
-    let ax = 5, ay = 5;
+    let ax, ay;
+    
     let isPaused = false;
     let isGameOver = false;
     let gameInterval;
     let lastInputTime = 0;
-    let highScore = localStorage.getItem('snake3310_real_best') || 0;
 
+    // Load Best Score
+    let highScore = localStorage.getItem('snake_pure_best') || 0;
     bestValEl.innerText = highScore;
 
-    function init() {
-        canvas.width = tileCountX * gridSize;
-        canvas.height = tileCountY * gridSize;
+    // --- INIT ---
+    window.onload = () => {
+        resize();
+        window.addEventListener('resize', resize);
         document.addEventListener('keydown', handleKey);
-        startGame();
+        
+        // Easter Egg Logic
+        checkEasterEgg();
+
+        // Start
+        resetGame();
+        gameInterval = setInterval(gameLoop, 1000/12); // 12 FPS (Retro feel)
+    };
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        tileCountX = Math.floor(canvas.width / gridSize);
+        tileCountY = Math.floor(canvas.height / gridSize);
     }
 
-    function startGame() {
+    function checkEasterEgg() {
+        if(!localStorage.getItem('snake_pure_best')) {
+            // Se è la prima volta assoluta, setta Easter Egg finto nella memoria (opzionale)
+            // Ma qui salviamo solo il numero. Se vuoi la leaderboard complessa serve JSON.
+            // Per ora salviamo il numero alto se richiesto.
+            // localStorage.setItem('snake_pure_best', 999999); 
+        }
+    }
+
+    function resetGame() {
+        score = 0;
+        tail = 5;
+        trail = [];
+        xv = 0; yv = 0;
+        px = Math.floor(tileCountX / 2);
+        py = Math.floor(tileCountY / 2);
+        scoreValEl.innerText = 0;
         isGameOver = false;
         isPaused = false;
-        score = 0; tail = 5; trail = []; 
-        px = 14; py = 9; xv = 1; yv = 0;
-        scoreValEl.innerText = 0;
-        gameOverMsg.style.display = "none";
+        overlay.style.display = "none";
         spawnApple();
-        if(gameInterval) clearInterval(gameInterval);
-        gameInterval = setInterval(game, 1000/10); 
     }
 
-    function game() {
+    function gameLoop() {
         if(isPaused || isGameOver) return;
 
         px += xv;
         py += yv;
 
-        // --- LOGICA WRAP (Passaggio Muri) ---
+        // --- WRAP LOGIC (Attraversa Muri) ---
         if(px < 0) px = tileCountX - 1;
         if(px > tileCountX - 1) px = 0;
         if(py < 0) py = tileCountY - 1;
@@ -181,79 +220,102 @@
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Draw Snake
-        ctx.fillStyle = "#2b3f29"; 
+        ctx.fillStyle = "#000";
         for(let i=0; i<trail.length; i++) {
-            ctx.fillRect(trail[i].x*gridSize+1, trail[i].y*gridSize+1, gridSize-2, gridSize-2);
+            ctx.fillRect(trail[i].x * gridSize, trail[i].y * gridSize, gridSize-2, gridSize-2);
             
-            // Collisione Coda (Game Over solo se tocchi te stesso)
-            if(trail[i].x === px && trail[i].y === py && tail > 5) {
-                handleGameOver(); return;
+            // Collisione Coda (Self-Hit)
+            if(trail[i].x === px && trail[i].y === py) {
+                // Game Over solo se ti mordi la coda e ti stai muovendo
+                if(xv !== 0 || yv !== 0) {
+                    gameOver();
+                }
             }
         }
 
         trail.push({x: px, y: py});
-        while(trail.length > tail) trail.shift();
+        while(trail.length > tail) {
+            trail.shift();
+        }
 
-        // Mela Logic
+        // Eat Apple
         if(ax === px && ay === py) {
-            tail++; score++;
+            tail++;
+            score++;
             scoreValEl.innerText = score;
             spawnApple();
         }
 
-        ctx.fillRect(ax*gridSize, ay*gridSize, gridSize, gridSize);
-    }
-
-    function handleGameOver() {
-        isGameOver = true;
-        gameOverMsg.style.display = "block";
-        gameOverMsg.innerHTML = "GAME OVER<br><span style='font-size:10px'>Press Cornetta/Pause</span>";
-        
-        if(score > highScore) {
-            highScore = score;
-            localStorage.setItem('snake3310_real_best', highScore);
-            bestValEl.innerText = highScore;
-        }
+        // Draw Apple
+        ctx.fillRect(ax*gridSize, ay*gridSize, gridSize-2, gridSize-2);
     }
 
     function spawnApple() {
-        ax = Math.floor(Math.random()*tileCountX);
-        ay = Math.floor(Math.random()*tileCountY);
+        // Evita spawn sopra HUD (prima riga)
+        let safeY = Math.floor(50 / gridSize); 
+        ax = Math.floor(Math.random() * tileCountX);
+        ay = Math.floor(Math.random() * (tileCountY - safeY)) + safeY;
+    }
+
+    function gameOver() {
+        isGameOver = true;
+        if(score > highScore) {
+            highScore = score;
+            localStorage.setItem('snake_pure_best', highScore);
+            bestValEl.innerText = highScore;
+        }
+        overlayTitle.innerText = "GAME OVER";
+        overlay.querySelector("button").innerText = "RESTART";
+        overlay.style.display = "block";
     }
 
     function togglePause() {
         if(isGameOver) {
-            startGame(); // Se game over, il tasto riavvia
+            resetGame();
+            return;
+        }
+        isPaused = !isPaused;
+        if(isPaused) {
+            overlayTitle.innerText = "PAUSED";
+            overlay.querySelector("button").innerText = "RESUME";
+            overlay.style.display = "block";
         } else {
-            isPaused = !isPaused;
-            gameOverMsg.style.display = isPaused ? "block" : "none";
-            gameOverMsg.innerText = isPaused ? "PAUSE" : "";
+            overlay.style.display = "none";
         }
     }
 
-    function input(x, y) {
+    // --- INPUT HANDLING ---
+    function input(x, y, e) {
+        if(e) e.preventDefault(); // Stop zoom/scroll
+        
         if(isPaused || isGameOver) return;
+
         let now = Date.now();
-        if(now - lastInputTime < 70) return; 
+        if(now - lastInputTime < 50) return; // Debounce veloce
         lastInputTime = now;
 
+        // Non permettere inversione a U
         if (x === -xv && x !== 0) return;
         if (y === -yv && y !== 0) return;
+        
+        // Se il gioco è fermo all'inizio, parti subito
+        if(xv === 0 && yv === 0) {
+             // First move
+        }
+
         xv = x;
         yv = y;
     }
 
     function handleKey(evt) {
-        switch(evt.key) {
-            case 'ArrowUp': case '2': input(0, -1); break;
-            case 'ArrowDown': case '8': input(0, 1); break;
-            case 'ArrowLeft': case '4': input(-1, 0); break;
-            case 'ArrowRight': case '6': input(1, 0); break;
-            case 'p': case 'c': case 'Backspace': togglePause(); break;
+        switch(evt.keyCode) {
+            case 37: input(-1, 0); break;
+            case 38: input(0, -1); break;
+            case 39: input(1, 0); break;
+            case 40: input(0, 1); break;
+            case 80: togglePause(); break; // P
         }
     }
-
-    window.onload = init;
 </script>
 </body>
 </html>
