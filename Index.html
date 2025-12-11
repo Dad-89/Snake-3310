@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nokia Snake</title>
+    <style>
+        /* CSS: Nokia 3310 Aesthetic */
+        body {
+            background-color: #99adc2;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #game-container {
+            background-color: #879c85;
+            border: 4px solid #333;
+            border-radius: 5px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+            padding: 2px;
+            position: relative;
+        }
+        canvas {
+            display: block;
+            background-color: #c7f0d8;
+            image-rendering: pixelated;
+        }
+        #ui-layer {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 60px 60px 60px;
+            gap: 10px;
+        }
+        .btn {
+            width: 60px;
+            height: 60px;
+            background: #333;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+            user-select: none;
+        }
+        .btn:active { background: #555; transform: scale(0.95); }
+        .empty { pointer-events: none; }
+        
+        /* NEW: Scoreboard Layout */
+        #status-bar {
+            width: 280px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #000;
+            margin-bottom: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="status-bar">
+        <span>Score: <span id="score">0</span></span>
+        <span>Best: <span id="best">0</span></span>
+    </div>
+    <canvas id="gc" width="280" height="280"></canvas>
+</div>
+
+<div id="ui-layer">
+    <div class="empty"></div>
+    <button class="btn" ontouchstart="keyPush(0, -1)">&#8593;</button>
+    <div class="empty"></div>
+    <button class="btn" ontouchstart="keyPush(-1, 0)">&#8592;</button>
+    <button class="btn" style="background:#555; font-size:12px;" onclick="manualReset()">R</button>
+    <button class="btn" ontouchstart="keyPush(1, 0)">&#8594;</button>
+    <div class="empty"></div>
+    <button class="btn" ontouchstart="keyPush(0, 1)">&#8595;</button>
+    <div class="empty"></div>
+</div>
+
+<script>
+    const canvas = document.getElementById("gc");
+    const ctx = canvas.getContext("2d");
+    const scoreEl = document.getElementById("score");
+    const bestEl = document.getElementById("best");
+
+    const gridSize = 20;
+    const tileCount = canvas.width / gridSize;
+    
+    let px = 10, py = 10;
+    let gs = 5;
+    let ax = 15, ay = 15;
+    let xv = 0, yv = 0;
+    let trail = [];
+    let tail = 5;
+    let score = 0;
+    
+    // NEW: Load High Score
+    let highScore = localStorage.getItem('snake_highscore') || 0;
+    bestEl.innerText = highScore;
+
+    window.onload = () => {
+        document.addEventListener("keydown", handleKey);
+        setInterval(game, 1000/10);
+    };
+
+    function game() {
+        px += xv;
+        py += yv;
+
+        if(px < 0) px = tileCount-1;
+        if(px > tileCount-1) px = 0;
+        if(py < 0) py = tileCount-1;
+        if(py > tileCount-1) py = 0;
+
+        ctx.fillStyle = "#c7f0d8"; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#000";
+        for(let i=0; i<trail.length; i++) {
+            ctx.fillRect(trail[i].x * gridSize, trail[i].y * gridSize, gridSize-2, gridSize-2);
+            if(trail[i].x === px && trail[i].y === py) {
+                if(tail > 5) checkGameOver();
+            }
+        }
+
+        trail.push({x: px, y: py});
+        while(trail.length > tail) {
+            trail.shift();
+        }
+
+        if(ax === px && ay === py) {
+            tail++;
+            score++;
+            scoreEl.innerText = score;
+            ax = Math.floor(Math.random()*tileCount);
+            ay = Math.floor(Math.random()*tileCount);
+        }
+
+        ctx.fillRect(ax*gridSize, ay*gridSize, gridSize-2, gridSize-2);
+    }
+
+    function checkGameOver() {
+        // NEW: Check High Score
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('snake_highscore', highScore);
+            bestEl.innerText = highScore;
+        }
+        resetVariables();
+    }
+
+    function manualReset() {
+        checkGameOver(); // Save score even on manual reset
+    }
+
+    function resetVariables() {
+        tail = 5;
+        score = 0;
+        scoreEl.innerText = 0;
+        trail = [];
+        px = 10; py = 10;
+        xv = 0; yv = 0;
+    }
+
+    function keyPush(x, y) {
+        if (x === -xv && x !== 0) return;
+        if (y === -yv && y !== 0) return;
+        xv = x;
+        yv = y;
+    }
+
+    function handleKey(evt) {
+        switch(evt.keyCode) {
+            case 37: keyPush(-1, 0); break;
+            case 38: keyPush(0, -1); break;
+            case 39: keyPush(1, 0); break;
+            case 40: keyPush(0, 1); break;
+        }
+    }
+</script>
+</body>
+</html>
