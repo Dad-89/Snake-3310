@@ -17,8 +17,8 @@ A lightweight, zero-dependency clone of the classic Nokia 3310 Snake game, writt
 
 ## 🕹️ Live Demo
 
-Play it here: **[Link alla tua GitHub Page]**
-*(es: https://tuo-username.github.io/snake-nokia)*
+Play it here: https://dad-89.github.io/Snake-3310/
+
 
 ## 🛠️ Tech Stack
 
