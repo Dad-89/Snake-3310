@@ -14,10 +14,10 @@
     <style>
         /* --- LAYOUT GENERALE --- */
         body {
-            background: #151515; /* Nero profondo per contrasto */
+            background: #151515; 
             margin: 0;
-            overflow: hidden; /* Niente scroll */
-            position: fixed; /* Fix per rimbalzo iOS */
+            overflow: hidden; 
+            position: fixed;
             width: 100%;
             height: 100%;
             font-family: 'Courier New', monospace;
@@ -25,64 +25,56 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            touch-action: none; /* Disabilita zoom e pan */
+            touch-action: none;
         }
 
-        /* --- AVVISO ROTAZIONE --- */
+        /* --- BLOCCO ROTAZIONE --- */
         #orientation-lock {
-            display: none;
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999;
-            color: #fff; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; font-size: 24px; font-weight: bold;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; color: #fff; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center; font-size: 24px; font-weight: bold;
         }
-        @media screen and (orientation: landscape) {
-            #orientation-lock { display: flex; }
-        }
+        @media screen and (orientation: landscape) { #orientation-lock { display: flex; } }
 
         /* --- BARRA SUPERIORE --- */
         #top-bar {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 60px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 60px;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; box-sizing: border-box;
-            z-index: 100; pointer-events: none;
+            padding: 0 20px; box-sizing: border-box; z-index: 100; pointer-events: none;
         }
-        #score-box { 
-            color: #c7f0d8; font-weight: bold; font-size: 24px; 
-            text-shadow: 2px 2px 0 #000;
-        }
+        #score-box { color: #c7f0d8; font-weight: bold; font-size: 24px; text-shadow: 2px 2px 0 #000; }
+        
         #pause-btn {
-            pointer-events: auto;
-            background: #879c85; color: #000; border: 3px solid #000;
+            pointer-events: auto; background: #879c85; color: #000; border: 3px solid #000;
             padding: 8px 16px; font-weight: bold; border-radius: 10px;
-            font-size: 16px; cursor: pointer; text-transform: uppercase;
+            font-size: 16px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 0 rgba(0,0,0,0.5);
         }
+        #pause-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5); }
 
-        /* --- STRUTTURA TELEFONO (UNIFICATA ALLA V1) --- */
-        /* Questo contenitore fa da maschera e sfondo insieme, come nella V1 */
+        /* --- STRUTTURA SEMPLIFICATA (STILE VERSIONE 1) --- */
         #phone-body {
             position: relative;
             width: 98vw; 
             max-width: 460px; 
             aspect-ratio: 9 / 18; 
             
-            /* STILE V1 PURO */
+            /* Stile identico alla V1 */
             border-radius: 55px; 
             overflow: hidden; 
             box-shadow: 0 10px 60px rgba(0,0,0,0.9);
             
-            /* BACKGROUND IMAGE DIRETTO */
+            /* Sfondo diretto */
             background-image: url('nokia_frame.JPG'); 
             background-position: center;
             background-repeat: no-repeat;
-            background-size: 128%; /* Zoom V1 */
+            background-size: 128%; 
         }
 
-        /* --- SCHERMO DI GIOCO (STILE V1 ESATTO) --- */
+        /* --- SCHERMO GIOCO (COPIATO ESATTAMENTE DALLA TUA RICHIESTA) --- */
         #screen-container {
             position: absolute;
-            /* COORDINATE V1 */
+            
+            /* I tuoi valori V1 */
             top: 28%;
             height: 34%;
             left: 13%;
@@ -93,6 +85,9 @@
             border-radius: 15px;
             overflow: hidden;
             z-index: 10;
+
+            /* --- DEBUG: RIMUOVI QUESTA RIGA SE I BORDI SONO ALLINEATI --- */
+            border: 2px solid red; 
         }
 
         canvas {
@@ -102,12 +97,9 @@
             opacity: 0.85;
         }
 
-        /* --- INPUT LAYER --- */
-        #touch-surface {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50;
-        }
+        #touch-surface { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; }
 
-        /* --- STILE MENU --- */
+        /* --- MENU --- */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.92); z-index: 500;
@@ -119,9 +111,8 @@
         h1 { font-size: 40px; margin-bottom: 30px; border-bottom: 4px solid #879c85; text-transform: uppercase; letter-spacing: 2px;}
         
         .menu-btn {
-            width: 260px; padding: 20px; margin: 10px;
-            background: #000; border: 4px solid #879c85;
-            color: #879c85; font-weight: bold; font-size: 22px;
+            width: 260px; padding: 20px; margin: 10px; background: #000;
+            border: 4px solid #879c85; color: #879c85; font-weight: bold; font-size: 22px;
             font-family: inherit; cursor: pointer; transition: transform 0.1s;
         }
         .menu-btn:active { background: #879c85; color: #000; transform: scale(0.95); }
@@ -129,7 +120,6 @@
         .lb-row { width: 300px; display: flex; justify-content: space-between; border-bottom: 1px dashed #555; padding: 12px 0; font-size: 20px; }
         
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-
     </style>
 </head>
 <body>
@@ -142,7 +132,9 @@
     </div>
 
     <div id="phone-body">
-        <div id="screen-container"><canvas id="gc"></canvas></div>
+        <div id="screen-container">
+            <canvas id="gc"></canvas>
+        </div>
     </div>
 
     <div id="touch-surface"></div>
@@ -175,7 +167,7 @@
         navigator.serviceWorker.register('sw.js').catch(console.error);
     }
 
-    // --- AUDIO ENGINE ROBUSTO ---
+    // --- AUDIO ENGINE ---
     let audioCtx = null;
 
     function unlockAudio() {
@@ -184,7 +176,7 @@
         }
         if (audioCtx.state === 'suspended') {
             audioCtx.resume().then(() => {
-                console.log("Audio unlocked");
+                console.log("Audio Context unlocked!");
             });
         }
         document.body.removeEventListener('touchstart', unlockAudio);
@@ -245,7 +237,6 @@
         document.getElementById("pause-btn").onclick = openMenuPause;
         document.getElementById("btn-resume").onclick = resumeGame;
         
-        // Tasto NEW GAME: avvia e sblocca audio
         document.getElementById("btn-new").onclick = () => {
             unlockAudio();
             startNew();
@@ -258,8 +249,6 @@
 
         initLb();
         ctx.fillStyle="#879c85"; ctx.fillRect(0,0,canvas.width,canvas.height);
-        
-        // APRE SUBITO IL MENU (NON AVVIA IL GIOCO)
         openMain();
     }
 
