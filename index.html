@@ -2,135 +2,138 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nokia Snake</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Snake Fullscreen</title>
     <style>
-        /* CSS: Nokia 3310 Aesthetic */
+        /* CSS: Fullscreen Immersion */
         body {
-            background-color: #99adc2;
-            font-family: 'Courier New', monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            background-color: #879c85; /* Colore schermo Nokia */
             margin: 0;
-            overflow: hidden;
-        }
-        #game-container {
-            background-color: #879c85;
-            border: 4px solid #333;
-            border-radius: 5px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
-            padding: 2px;
-            position: relative;
+            overflow: hidden; /* Blocca lo scroll della pagina */
+            touch-action: none; /* Disabilita gesture browser */
+            font-family: 'Courier New', monospace;
         }
         canvas {
             display: block;
-            background-color: #c7f0d8;
+            width: 100vw;
+            height: 100vh;
             image-rendering: pixelated;
         }
-        #ui-layer {
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: 60px 60px 60px;
-            gap: 10px;
-        }
-        .btn {
-            width: 60px;
-            height: 60px;
-            background: #333;
-            border-radius: 50%;
-            border: none;
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: manipulation;
-            user-select: none;
-        }
-        .btn:active { background: #555; transform: scale(0.95); }
-        .empty { pointer-events: none; }
-        
-        /* NEW: Scoreboard Layout */
-        #status-bar {
-            width: 280px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
+        #ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
             color: #000;
-            margin-bottom: 4px;
             font-weight: bold;
-            text-transform: uppercase;
+            font-size: 18px;
+            background: rgba(199, 240, 216, 0.8); /* Backlight semi-trasparente */
+            padding: 5px 10px;
+            border: 2px solid #333;
+            border-radius: 4px;
+            pointer-events: none; /* Lascia passare i touch al canvas */
+        }
+        /* Istruzione iniziale che sparisce */
+        #hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #333;
+            font-weight: bold;
+            text-align: center;
+            opacity: 0.5;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="status-bar">
-        <span>Score: <span id="score">0</span></span>
-        <span>Best: <span id="best">0</span></span>
-    </div>
-    <canvas id="gc" width="280" height="280"></canvas>
+<div id="ui-overlay">
+    SCORE: <span id="score">0</span> | BEST: <span id="best">0</span>
 </div>
+<div id="hint">SWIPE TO START</div>
 
-<div id="ui-layer">
-    <div class="empty"></div>
-    <button class="btn" ontouchstart="keyPush(0, -1)">&#8593;</button>
-    <div class="empty"></div>
-    <button class="btn" ontouchstart="keyPush(-1, 0)">&#8592;</button>
-    <button class="btn" style="background:#555; font-size:12px;" onclick="manualReset()">R</button>
-    <button class="btn" ontouchstart="keyPush(1, 0)">&#8594;</button>
-    <div class="empty"></div>
-    <button class="btn" ontouchstart="keyPush(0, 1)">&#8595;</button>
-    <div class="empty"></div>
-</div>
+<canvas id="gc"></canvas>
 
 <script>
     const canvas = document.getElementById("gc");
     const ctx = canvas.getContext("2d");
     const scoreEl = document.getElementById("score");
     const bestEl = document.getElementById("best");
+    const hintEl = document.getElementById("hint");
 
-    const gridSize = 20;
-    const tileCount = canvas.width / gridSize;
+    // Configurazione Dinamica
+    let gridSize = 20; // Grandezza quadratino
+    let tileCountX, tileCountY;
     
-    let px = 10, py = 10;
-    let gs = 5;
-    let ax = 15, ay = 15;
+    // Stato Gioco
+    let px, py;
     let xv = 0, yv = 0;
     let trail = [];
     let tail = 5;
     let score = 0;
+    let ax, ay; // Apple position
+    let highScore = localStorage.getItem('snake_fs_highscore') || 0;
+    let gameRunning = false;
     
-    // NEW: Load High Score
-    let highScore = localStorage.getItem('snake_highscore') || 0;
+    // Swipe Logic Variables
+    let touchStartX = 0;
+    let touchStartY = 0;
+
     bestEl.innerText = highScore;
 
+    // Init Engine
     window.onload = () => {
-        document.addEventListener("keydown", handleKey);
-        setInterval(game, 1000/10);
+        resize();
+        window.addEventListener('resize', resize);
+        document.addEventListener('keydown', handleKey); // Fallback PC
+        
+        // Touch Listeners
+        document.addEventListener('touchstart', handleTouchStart, {passive: false});
+        document.addEventListener('touchmove', handleTouchMove, {passive: false}); // Blocca scroll
+        document.addEventListener('touchend', handleTouchEnd, {passive: false});
+        
+        setInterval(game, 1000/12); // 12 FPS
     };
 
+    function resize() {
+        // Adatta il canvas allo schermo reale
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        // Calcola quante celle stanno nello schermo
+        tileCountX = Math.floor(canvas.width / gridSize);
+        tileCountY = Math.floor(canvas.height / gridSize);
+        
+        // Reset posizioni se fuori schermo
+        if(!gameRunning) reset();
+    }
+
     function game() {
+        if(!gameRunning) return;
+
         px += xv;
         py += yv;
 
-        if(px < 0) px = tileCount-1;
-        if(px > tileCount-1) px = 0;
-        if(py < 0) py = tileCount-1;
-        if(py > tileCount-1) py = 0;
+        // Logica muri passanti (Wrap) su griglia dinamica
+        if(px < 0) px = tileCountX-1;
+        if(px > tileCountX-1) px = 0;
+        if(py < 0) py = tileCountY-1;
+        if(py > tileCountY-1) py = 0;
 
-        ctx.fillStyle = "#c7f0d8"; 
+        // Background pulito
+        ctx.fillStyle = "#879c85"; 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // Disegna Serpente
         ctx.fillStyle = "#000";
         for(let i=0; i<trail.length; i++) {
             ctx.fillRect(trail[i].x * gridSize, trail[i].y * gridSize, gridSize-2, gridSize-2);
+            
+            // Collisione coda
             if(trail[i].x === px && trail[i].y === py) {
-                if(tail > 5) checkGameOver();
+                if(tail > 5) gameOver();
             }
         }
 
@@ -139,41 +142,100 @@
             trail.shift();
         }
 
+        // Collisione Mela
         if(ax === px && ay === py) {
             tail++;
             score++;
             scoreEl.innerText = score;
-            ax = Math.floor(Math.random()*tileCount);
-            ay = Math.floor(Math.random()*tileCount);
+            spawnApple();
         }
 
+        // Disegna Mela
+        ctx.fillStyle = "#000"; 
         ctx.fillRect(ax*gridSize, ay*gridSize, gridSize-2, gridSize-2);
     }
 
-    function checkGameOver() {
-        // NEW: Check High Score
+    function spawnApple() {
+        ax = Math.floor(Math.random() * tileCountX);
+        ay = Math.floor(Math.random() * tileCountY);
+    }
+
+    function gameOver() {
         if (score > highScore) {
             highScore = score;
-            localStorage.setItem('snake_highscore', highScore);
+            localStorage.setItem('snake_fs_highscore', highScore);
             bestEl.innerText = highScore;
         }
-        resetVariables();
+        reset();
     }
 
-    function manualReset() {
-        checkGameOver(); // Save score even on manual reset
-    }
-
-    function resetVariables() {
+    function reset() {
         tail = 5;
         score = 0;
         scoreEl.innerText = 0;
         trail = [];
-        px = 10; py = 10;
+        // Start center
+        px = Math.floor(tileCountX / 2);
+        py = Math.floor(tileCountY / 2);
         xv = 0; yv = 0;
+        gameRunning = false;
+        hintEl.style.display = "block";
+        spawnApple();
+        
+        // Disegna frame statico di reset
+        ctx.fillStyle = "#879c85"; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#000"; 
+        ctx.fillRect(ax*gridSize, ay*gridSize, gridSize-2, gridSize-2);
+        ctx.fillRect(px*gridSize, py*gridSize, gridSize-2, gridSize-2);
     }
 
-    function keyPush(x, y) {
+    // --- INPUT LOGIC (SWIPE) ---
+
+    function handleTouchStart(evt) {
+        touchStartX = evt.changedTouches[0].screenX;
+        touchStartY = evt.changedTouches[0].screenY;
+    }
+
+    function handleTouchMove(evt) {
+        // Impedisce il refresh della pagina o lo scroll mentre giochi
+        evt.preventDefault();
+    }
+
+    function handleTouchEnd(evt) {
+        if(!gameRunning) {
+            gameRunning = true;
+            hintEl.style.display = "none";
+        }
+
+        let touchEndX = evt.changedTouches[0].screenX;
+        let touchEndY = evt.changedTouches[0].screenY;
+        
+        handleGesture(touchStartX, touchStartY, touchEndX, touchEndY);
+    }
+
+    function handleGesture(sx, sy, ex, ey) {
+        let xDiff = ex - sx;
+        let yDiff = ey - sy;
+
+        // Rileva swipe solo se il movimento è significativo (>10px)
+        if (Math.abs(xDiff) > Math.abs(yDiff)) {
+            // Movimento Orizzontale
+            if (Math.abs(xDiff) > 10) {
+                if (xDiff > 0) changeDir(1, 0); // Destra
+                else changeDir(-1, 0); // Sinistra
+            }
+        } else {
+            // Movimento Verticale
+            if (Math.abs(yDiff) > 10) {
+                if (yDiff > 0) changeDir(0, 1); // Giù
+                else changeDir(0, -1); // Su
+            }
+        }
+    }
+
+    function changeDir(x, y) {
+        // Anti-suicidio (non puoi tornare indietro di colpo)
         if (x === -xv && x !== 0) return;
         if (y === -yv && y !== 0) return;
         xv = x;
@@ -181,11 +243,12 @@
     }
 
     function handleKey(evt) {
+        if(!gameRunning) { gameRunning = true; hintEl.style.display = "none"; }
         switch(evt.keyCode) {
-            case 37: keyPush(-1, 0); break;
-            case 38: keyPush(0, -1); break;
-            case 39: keyPush(1, 0); break;
-            case 40: keyPush(0, 1); break;
+            case 37: changeDir(-1, 0); break;
+            case 38: changeDir(0, -1); break;
+            case 39: changeDir(1, 0); break;
+            case 40: changeDir(0, 1); break;
         }
     }
 </script>
