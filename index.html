@@ -3,319 +3,418 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Snake Fullscreen Pure</title>
+    <title>Snake Ultimate</title>
     <style>
+        /* --- RESET & LAYOUT --- */
         body {
             background-color: #879c85; /* Nokia Green */
             margin: 0;
             overflow: hidden;
-            touch-action: none; /* No scroll/zoom */
+            touch-action: none; /* Disabilita scroll nativo */
             font-family: 'Courier New', monospace;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        /* HUD in alto (Punteggio) */
-        #hud {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            padding: 10px;
-            box-sizing: border-box;
             display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            font-size: 18px;
-            color: #000;
-            z-index: 20;
-            pointer-events: none; /* Lascia passare i click */
+            flex-direction: column;
+            height: 100vh;
         }
 
-        /* Pulsante Pausa Visibile (piccolo in alto) */
-        #btn-pause-ui {
-            pointer-events: auto;
-            border: 2px solid #000;
-            background: transparent;
+        /* --- TOP BAR (Header) --- */
+        #top-bar {
+            height: 50px;
+            background-color: #000;
+            color: #879c85;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            z-index: 100;
+            flex-shrink: 0; /* Non si schiaccia */
+        }
+        #score-box {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        #pause-btn {
+            background: #879c85;
+            color: #000;
+            border: none;
+            padding: 5px 15px;
             font-weight: bold;
             font-family: inherit;
-            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 14px;
         }
 
-        /* Area di Gioco */
+        /* --- GAME AREA --- */
+        #game-container {
+            flex-grow: 1; /* Occupa tutto lo spazio rimanente */
+            position: relative;
+            background-color: #879c85;
+        }
         canvas {
             display: block;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             image-rendering: pixelated;
         }
 
-        /* --- CONTROLLI INVISIBILI (Smart Touch Zones) --- */
-        #controls-layer {
+        /* --- MENUS & OVERLAYS --- */
+        .overlay {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 45%; /* Occupa quasi metà schermo in basso */
-            z-index: 50;
-            /* background: rgba(255,0,0,0.2); /* <--- SCOMMENTA PER VEDERE LE AREE (DEBUG) */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            color: #879c85;
         }
-
-        .touch-zone {
-            position: absolute;
-            /* border: 1px dashed white; /* DEBUG */
-        }
-
-        /* Disposizione a Croce (D-Pad Invisibile) */
-        #zone-up {
-            top: 0; left: 33.3%; width: 33.3%; height: 50%;
-        }
-        #zone-down {
-            bottom: 0; left: 33.3%; width: 33.3%; height: 50%;
-        }
-        #zone-left {
-            top: 25%; left: 0; width: 33.3%; height: 50%;
-        }
-        #zone-right {
-            top: 25%; right: 0; width: 33.3%; height: 50%;
-        }
-
-        /* Feedback Tocco (Opzionale: leggero flash quando premi) */
-        .touch-zone:active {
-            background: rgba(0,0,0,0.1);
-        }
-
-        /* Overlay Messaggi (Game Over / Pausa) */
-        #overlay {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            display: none;
-            z-index: 60;
-            background: rgba(135, 156, 133, 0.9);
-            padding: 20px;
-            border: 4px solid #000;
-        }
-        h1 { margin: 0 0 10px 0; font-size: 30px; }
-        p { font-size: 14px; font-weight: bold; margin-bottom: 20px; }
-        .action-btn {
-            background: #000; color: #879c85;
-            border: none; padding: 10px 20px;
-            font-size: 18px; font-family: inherit; font-weight: bold;
+        .hidden { display: none !important; }
+        
+        h1 { margin: 0 0 30px 0; font-size: 32px; letter-spacing: 2px; text-transform: uppercase; }
+        
+        .menu-btn {
+            width: 200px;
+            padding: 15px;
+            margin: 10px 0;
+            background: transparent;
+            border: 2px solid #879c85;
+            color: #879c85;
+            font-family: inherit;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
             cursor: pointer;
         }
+        .menu-btn:active { background: #879c85; color: #000; }
+
+        /* --- LEADERBOARD STYLE --- */
+        #lb-container { width: 80%; max-width: 300px; text-align: left; }
+        .lb-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #444; padding: 5px 0; margin-bottom: 5px; font-size: 14px;}
+        .lb-top { color: #ffff00; font-weight: bold; text-shadow: 0 0 5px orange; } /* Easter egg style */
+
+        /* --- ABOUT STYLE --- */
+        #about-content { text-align: center; line-height: 1.6; font-size: 16px; }
+        .heart-link { 
+            color: #ff3333; 
+            font-size: 40px; 
+            text-decoration: none; 
+            display: inline-block;
+            margin-top: 10px;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
     </style>
 </head>
 <body>
 
-<div id="hud">
-    <span>SCORE: <span id="score-val">0</span></span>
-    <button id="btn-pause-ui" ontouchstart="togglePause()">II</button>
-</div>
+    <div id="top-bar">
+        <div id="score-box">SCORE: <span id="score-val">0</span></div>
+        <button id="pause-btn" ontouchstart="openMenu()">PAUSE</button>
+    </div>
 
-<canvas id="gc"></canvas>
+    <div id="game-container">
+        <canvas id="gc"></canvas>
+    </div>
 
-<div id="controls-layer">
-    <div id="zone-up" class="touch-zone" ontouchstart="input(0, -1, event)"></div>
-    <div id="zone-down" class="touch-zone" ontouchstart="input(0, 1, event)"></div>
-    <div id="zone-left" class="touch-zone" ontouchstart="input(-1, 0, event)"></div>
-    <div id="zone-right" class="touch-zone" ontouchstart="input(1, 0, event)"></div>
-</div>
+    <div id="main-menu" class="overlay hidden">
+        <h1>PAUSED</h1>
+        <button class="menu-btn" id="btn-resume" onclick="resumeGame()">RESUME</button>
+        <button class="menu-btn" onclick="newGame()">NEW GAME</button>
+        <button class="menu-btn" onclick="showLeaderboard()">BEST SCORE</button>
+        <button class="menu-btn" onclick="showAbout()">ABOUT</button>
+    </div>
 
-<div id="overlay">
-    <h1 id="overlay-title">PAUSED</h1>
-    <p>BEST: <span id="best-val">0</span></p>
-    <button class="action-btn" onclick="togglePause()">RESUME</button>
-</div>
+    <div id="lb-menu" class="overlay hidden">
+        <h1>TOP 5</h1>
+        <div id="lb-container"></div>
+        <button class="menu-btn" style="margin-top:30px" onclick="backToMain()">BACK</button>
+    </div>
+
+    <div id="about-menu" class="overlay hidden">
+        <h1>ABOUT</h1>
+        <div id="about-content">
+            I LOVE<br>
+            NOKIA 3310<br><br>
+            <a href="https://github.com/Dad-89" class="heart-link">&hearts;</a>
+        </div>
+        <button class="menu-btn" style="margin-top:30px" onclick="backToMain()">BACK</button>
+    </div>
 
 <script>
+    // --- CORE VARIABLES ---
     const canvas = document.getElementById("gc");
     const ctx = canvas.getContext("2d");
-    const scoreValEl = document.getElementById("score-val");
-    const bestValEl = document.getElementById("best-val");
-    const overlay = document.getElementById("overlay");
-    const overlayTitle = document.getElementById("overlay-title");
+    const scoreEl = document.getElementById("score-val");
+    
+    // Menus
+    const mainMenu = document.getElementById("main-menu");
+    const lbMenu = document.getElementById("lb-menu");
+    const aboutMenu = document.getElementById("about-menu");
+    const btnResume = document.getElementById("btn-resume");
 
-    // Configurazione
-    let gridSize = 20; // Pixel grandi
+    let gridSize = 20;
     let tileCountX, tileCountY;
     
-    // Stato
+    // Snake State
     let px, py;
     let xv=0, yv=0;
     let trail = [];
     let tail = 5;
     let score = 0;
-    let ax, ay;
+    let ax, ay; // Apple
     
     let isPaused = false;
-    let isGameOver = false;
     let gameInterval;
-    let lastInputTime = 0;
+    
+    // TOUCH LOGIC VARIABLES
+    let touchStartX = null;
+    let touchStartY = null;
 
-    // Load Best Score
-    let highScore = localStorage.getItem('snake_pure_best') || 0;
-    bestValEl.innerText = highScore;
-
-    // --- INIT ---
+    // --- INITIALIZATION ---
     window.onload = () => {
         resize();
         window.addEventListener('resize', resize);
+        
+        // Input Listeners (Keyboard + Touch)
         document.addEventListener('keydown', handleKey);
         
-        // Easter Egg Logic
-        checkEasterEgg();
-
-        // Start
-        resetGame();
-        gameInterval = setInterval(gameLoop, 1000/12); // 12 FPS (Retro feel)
+        // *** THE MAGIC MOVEMENT LISTENER ***
+        // Usiamo touchmove per reattività istantanea
+        const gameArea = document.getElementById("game-container");
+        gameArea.addEventListener('touchstart', handleTouchStart, {passive: false});
+        gameArea.addEventListener('touchmove', handleTouchMove, {passive: false});
+        
+        // Init Leaderboard if empty
+        initLeaderboard();
+        
+        // Start Game
+        newGame();
     };
 
     function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        // Calcola la grandezza del canvas basandosi sul container (che è sotto la barra nera)
+        const container = document.getElementById("game-container");
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        
         tileCountX = Math.floor(canvas.width / gridSize);
         tileCountY = Math.floor(canvas.height / gridSize);
     }
 
-    function checkEasterEgg() {
-        if(!localStorage.getItem('snake_pure_best')) {
-            // Se è la prima volta assoluta, setta Easter Egg finto nella memoria (opzionale)
-            // Ma qui salviamo solo il numero. Se vuoi la leaderboard complessa serve JSON.
-            // Per ora salviamo il numero alto se richiesto.
-            // localStorage.setItem('snake_pure_best', 999999); 
-        }
-    }
-
-    function resetGame() {
+    // --- GAME LOGIC ---
+    function newGame() {
         score = 0;
         tail = 5;
         trail = [];
-        xv = 0; yv = 0;
+        xv = 1; yv = 0; // Parte andando a destra
+        scoreEl.innerText = 0;
+        
         px = Math.floor(tileCountX / 2);
         py = Math.floor(tileCountY / 2);
-        scoreValEl.innerText = 0;
-        isGameOver = false;
-        isPaused = false;
-        overlay.style.display = "none";
+        
+        closeAllMenus();
         spawnApple();
+        
+        if(gameInterval) clearInterval(gameInterval);
+        gameInterval = setInterval(gameLoop, 1000/12); // 12 FPS
+        isPaused = false;
+    }
+
+    function resumeGame() {
+        closeAllMenus();
+        isPaused = false;
     }
 
     function gameLoop() {
-        if(isPaused || isGameOver) return;
+        if(isPaused) return;
 
         px += xv;
         py += yv;
 
-        // --- WRAP LOGIC (Attraversa Muri) ---
+        // WRAP (Passa muri)
         if(px < 0) px = tileCountX - 1;
         if(px > tileCountX - 1) px = 0;
         if(py < 0) py = tileCountY - 1;
         if(py > tileCountY - 1) py = 0;
 
-        // Draw Background
+        // Background
         ctx.fillStyle = "#879c85";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw Snake
+        // Snake
         ctx.fillStyle = "#000";
         for(let i=0; i<trail.length; i++) {
             ctx.fillRect(trail[i].x * gridSize, trail[i].y * gridSize, gridSize-2, gridSize-2);
             
-            // Collisione Coda (Self-Hit)
+            // Self Collision
             if(trail[i].x === px && trail[i].y === py) {
-                // Game Over solo se ti mordi la coda e ti stai muovendo
-                if(xv !== 0 || yv !== 0) {
-                    gameOver();
-                }
+                if(tail > 5) gameOver(); // Muori solo se sei "lungo"
             }
         }
 
         trail.push({x: px, y: py});
-        while(trail.length > tail) {
-            trail.shift();
-        }
+        while(trail.length > tail) trail.shift();
 
-        // Eat Apple
+        // Apple
         if(ax === px && ay === py) {
             tail++;
             score++;
-            scoreValEl.innerText = score;
+            scoreEl.innerText = score;
             spawnApple();
         }
-
-        // Draw Apple
         ctx.fillRect(ax*gridSize, ay*gridSize, gridSize-2, gridSize-2);
     }
 
     function spawnApple() {
-        // Evita spawn sopra HUD (prima riga)
-        let safeY = Math.floor(50 / gridSize); 
         ax = Math.floor(Math.random() * tileCountX);
-        ay = Math.floor(Math.random() * (tileCountY - safeY)) + safeY;
+        ay = Math.floor(Math.random() * tileCountY);
     }
 
     function gameOver() {
-        isGameOver = true;
-        if(score > highScore) {
-            highScore = score;
-            localStorage.setItem('snake_pure_best', highScore);
-            bestValEl.innerText = highScore;
-        }
-        overlayTitle.innerText = "GAME OVER";
-        overlay.querySelector("button").innerText = "RESTART";
-        overlay.style.display = "block";
+        isPaused = true;
+        saveScore(score);
+        document.querySelector("#main-menu h1").innerText = "GAME OVER";
+        btnResume.style.display = "none"; // Non puoi fare resume se morto
+        mainMenu.classList.remove("hidden");
     }
 
-    function togglePause() {
-        if(isGameOver) {
-            resetGame();
-            return;
-        }
-        isPaused = !isPaused;
-        if(isPaused) {
-            overlayTitle.innerText = "PAUSED";
-            overlay.querySelector("button").innerText = "RESUME";
-            overlay.style.display = "block";
-        } else {
-            overlay.style.display = "none";
+    // --- MOVEMENT ENGINE (INSTANT SWIPE) ---
+    function handleTouchStart(e) {
+        // Salva punto iniziale
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }
+
+    function handleTouchMove(e) {
+        if(isPaused) return;
+        e.preventDefault(); // Blocca lo scroll della pagina
+
+        if (!touchStartX || !touchStartY) return;
+
+        let touchEndX = e.touches[0].clientX;
+        let touchEndY = e.touches[0].clientY;
+
+        let dx = touchEndX - touchStartX;
+        let dy = touchEndY - touchStartY;
+
+        // SOGLIA DI SENSIBILITÀ (15 pixel)
+        // Se ti sei mosso di almeno 15px, cambia direzione
+        if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+                // Orizzontale
+                input(dx > 0 ? 1 : -1, 0);
+            } else {
+                // Verticale
+                input(0, dy > 0 ? 1 : -1);
+            }
+            
+            // RESET CONTINUO
+            // Questo è il trucco: resetto il punto di partenza alle nuove coordinate.
+            // Così se continui a girare il dito, il serpente continua a seguire
+            // senza dover alzare il dito.
+            touchStartX = touchEndX;
+            touchStartY = touchEndY;
         }
     }
 
-    // --- INPUT HANDLING ---
-    function input(x, y, e) {
-        if(e) e.preventDefault(); // Stop zoom/scroll
-        
-        if(isPaused || isGameOver) return;
-
-        let now = Date.now();
-        if(now - lastInputTime < 50) return; // Debounce veloce
-        lastInputTime = now;
-
-        // Non permettere inversione a U
+    function input(x, y) {
+        // Anti-inversione
         if (x === -xv && x !== 0) return;
         if (y === -yv && y !== 0) return;
-        
-        // Se il gioco è fermo all'inizio, parti subito
-        if(xv === 0 && yv === 0) {
-             // First move
-        }
-
         xv = x;
         yv = y;
     }
 
-    function handleKey(evt) {
-        switch(evt.keyCode) {
+    function handleKey(e) {
+        switch(e.keyCode) {
             case 37: input(-1, 0); break;
             case 38: input(0, -1); break;
             case 39: input(1, 0); break;
             case 40: input(0, 1); break;
-            case 80: togglePause(); break; // P
+            case 80: openMenu(); break; // P
         }
     }
+
+    // --- MENU SYSTEM ---
+    function openMenu() {
+        isPaused = true;
+        document.querySelector("#main-menu h1").innerText = "PAUSED";
+        btnResume.style.display = "block"; // Riabilita resume
+        mainMenu.classList.remove("hidden");
+    }
+
+    function closeAllMenus() {
+        mainMenu.classList.add("hidden");
+        lbMenu.classList.add("hidden");
+        aboutMenu.classList.add("hidden");
+    }
+
+    function backToMain() {
+        closeAllMenus();
+        mainMenu.classList.remove("hidden");
+    }
+
+    function showLeaderboard() {
+        closeAllMenus();
+        renderLeaderboard();
+        lbMenu.classList.remove("hidden");
+    }
+
+    function showAbout() {
+        closeAllMenus();
+        aboutMenu.classList.remove("hidden");
+    }
+
+    // --- LEADERBOARD & DATA ---
+    const LB_KEY = 'snake_ultra_lb';
+
+    function initLeaderboard() {
+        if(!localStorage.getItem(LB_KEY)) {
+            const defaults = [
+                { n: 'AAAAAAAAA', s: 99999 }, // Easter Egg
+                { n: 'SNAKE_KING', s: 250 },
+                { n: 'LUCY_RETRO', s: 150 },
+                { n: 'MARIO_8BIT', s: 100 },
+                { n: 'NOKIA_FAN', s: 50 }
+            ];
+            localStorage.setItem(LB_KEY, JSON.stringify(defaults));
+        }
+    }
+
+    function saveScore(newScore) {
+        let data = JSON.parse(localStorage.getItem(LB_KEY));
+        // Se il punteggio entra in classifica
+        if(newScore > data[data.length-1].s) {
+            let name = prompt("NEW RECORD! Name:", "PLAYER");
+            if(!name) name = "UNKNOWN";
+            name = name.substring(0, 10).toUpperCase();
+            
+            data.push({n: name, s: newScore});
+            data.sort((a,b) => b.s - a.s);
+            data = data.slice(0, 5); // Keep top 5
+            localStorage.setItem(LB_KEY, JSON.stringify(data));
+        }
+    }
+
+    function renderLeaderboard() {
+        let data = JSON.parse(localStorage.getItem(LB_KEY));
+        let container = document.getElementById("lb-container");
+        container.innerHTML = "";
+        
+        data.forEach((item, i) => {
+            let row = document.createElement("div");
+            // Applica stile speciale al primo (Easter egg)
+            row.className = (i === 0 && item.s === 99999) ? "lb-row lb-top" : "lb-row";
+            row.innerHTML = `<span>${i+1}. ${item.n}</span><span>${item.s}</span>`;
+            container.appendChild(row);
+        });
+    }
+
 </script>
 </body>
 </html>
