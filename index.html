@@ -12,23 +12,13 @@
     
     <title>Snake 3310 Ultimate</title>
     <style>
-        /* --- LAYOUT GENERALE --- */
         body {
-            background: #151515; 
-            margin: 0;
-            overflow: hidden; 
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            font-family: 'Courier New', monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background: #151515; margin: 0; overflow: hidden; position: fixed;
+            width: 100%; height: 100%; font-family: 'Courier New', monospace;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             touch-action: none;
         }
 
-        /* --- BLOCCO ROTAZIONE --- */
         #orientation-lock {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999; color: #fff; flex-direction: column;
@@ -36,7 +26,6 @@
         }
         @media screen and (orientation: landscape) { #orientation-lock { display: flex; } }
 
-        /* --- BARRA SUPERIORE --- */
         #top-bar {
             position: absolute; top: 0; left: 0; width: 100%; height: 60px;
             display: flex; align-items: center; justify-content: space-between;
@@ -46,48 +35,37 @@
         
         #pause-btn {
             pointer-events: auto; background: #879c85; color: #000; border: 3px solid #000;
-            padding: 8px 16px; font-weight: bold; border-radius: 10px;
-            font-size: 16px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 0 rgba(0,0,0,0.5);
+            padding: 8px 16px; font-weight: bold; border-radius: 10px; font-size: 16px;
+            cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 0 rgba(0,0,0,0.5);
         }
-        #pause-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5); }
 
-        /* --- STRUTTURA SEMPLIFICATA (STILE VERSIONE 1) --- */
-        #phone-body {
+        /* --- STRUTTURA SEMPLIFICATA (V1 STYLE) --- */
+        #phone-container {
             position: relative;
             width: 98vw; 
             max-width: 460px; 
             aspect-ratio: 9 / 18; 
-            
-            /* Stile identico alla V1 */
-            border-radius: 55px; 
-            overflow: hidden; 
-            box-shadow: 0 10px 60px rgba(0,0,0,0.9);
-            
-            /* Sfondo diretto */
             background-image: url('nokia_frame.JPG'); 
             background-position: center;
             background-repeat: no-repeat;
             background-size: 128%; 
+            border-radius: 55px; 
+            overflow: hidden; 
+            box-shadow: 0 10px 60px rgba(0,0,0,0.9);
         }
 
-        /* --- SCHERMO GIOCO (COPIATO ESATTAMENTE DALLA TUA RICHIESTA) --- */
+        /* --- SCHERMO GIOCO (TUE COORDINATE) --- */
         #screen-container {
             position: absolute;
-            
-            /* I tuoi valori V1 */
-            top: 28%;
-            height: 34%;
-            left: 13%;
-            width: 73%;
+            top: 28%;      /* COORDINATA V1 */
+            left: 13%;     /* COORDINATA V1 */
+            width: 73%;    /* COORDINATA V1 */
+            height: 34%;   /* COORDINATA V1 */
             
             background-color: transparent;
-            box-shadow: none;
             border-radius: 15px;
             overflow: hidden;
             z-index: 10;
-
-            /* --- DEBUG: RIMUOVI QUESTA RIGA SE I BORDI SONO ALLINEATI --- */
-            border: 2px solid red; 
         }
 
         canvas {
@@ -99,7 +77,6 @@
 
         #touch-surface { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; }
 
-        /* --- MENU --- */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.92); z-index: 500;
@@ -113,13 +90,11 @@
         .menu-btn {
             width: 260px; padding: 20px; margin: 10px; background: #000;
             border: 4px solid #879c85; color: #879c85; font-weight: bold; font-size: 22px;
-            font-family: inherit; cursor: pointer; transition: transform 0.1s;
+            font-family: inherit; cursor: pointer;
         }
-        .menu-btn:active { background: #879c85; color: #000; transform: scale(0.95); }
+        .menu-btn:active { background: #879c85; color: #000; }
         .gold { color: #ffd700; text-shadow: 0 0 10px orange; }
         .lb-row { width: 300px; display: flex; justify-content: space-between; border-bottom: 1px dashed #555; padding: 12px 0; font-size: 20px; }
-        
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -131,7 +106,7 @@
         <button id="pause-btn">MENU</button>
     </div>
 
-    <div id="phone-body">
+    <div id="phone-container">
         <div id="screen-container">
             <canvas id="gc"></canvas>
         </div>
@@ -162,12 +137,13 @@
         <button class="menu-btn" id="btn-back-ab">BACK</button>
     </div>
 
+    <style>@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }</style>
+
 <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(console.error);
     }
 
-    // --- AUDIO ENGINE ---
     let audioCtx = null;
 
     function unlockAudio() {
@@ -175,9 +151,7 @@
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
         if (audioCtx.state === 'suspended') {
-            audioCtx.resume().then(() => {
-                console.log("Audio Context unlocked!");
-            });
+            audioCtx.resume();
         }
         document.body.removeEventListener('touchstart', unlockAudio);
         document.body.removeEventListener('click', unlockAudio);
@@ -214,7 +188,6 @@
         }
     }
 
-    // --- GAME ENGINE ---
     const canvas = document.getElementById("gc");
     const ctx = canvas.getContext("2d");
     const screenCont = document.getElementById("screen-container");
@@ -263,10 +236,8 @@
         tail=5; trail=[]; resize();
         px = Math.floor(tX/2); py = Math.floor(tY/2);
         xv=1; yv=0; nextX=1; nextY=0; 
-        
         currentFPS = baseFPS; 
         spawnApple();
-        
         isRunning=true; isPaused=false;
         if(loopId) clearInterval(loopId); 
         loopId = setInterval(update, 1000/currentFPS);
@@ -276,7 +247,6 @@
         if(isPaused || !isRunning) return;
         xv=nextX; yv=nextY; hasMoved=false;
         px+=xv; py+=yv;
-        
         if(px<0) px=tX-1; if(px>tX-1) px=0; if(py<0) py=tY-1; if(py>tY-1) py=0;
 
         ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -294,13 +264,11 @@
             document.getElementById("score").innerText=score;
             if(navigator.vibrate) navigator.vibrate(20);
             playSound('eat'); 
-            
             if(score % 5 === 0) {
                 currentFPS++;
                 clearInterval(loopId);
                 loopId = setInterval(update, 1000/currentFPS);
             }
-            
             spawnApple();
         }
         ctx.fillStyle="#000"; ctx.fillRect(ax*GRID, ay*GRID, GRID, GRID);
