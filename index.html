@@ -5,109 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Snake 3310 Full Screen</title>
+    <title>Snake 3310 Legend</title>
     <style>
-        /* --- LAYOUT GENERALE --- */
+        /* --- LAYOUT GENERALE DEL SITO --- */
         body {
-            background: #151515;
+            background: #151515; /* Sfondo nero "Dark Mode" per far risaltare il telefono */
             margin: 0;
-            overflow: hidden;
-            position: fixed;
+            overflow: hidden; /* Vietato scrollare */
+            position: fixed; /* Blocca il "rimbalzo" su iPhone */
             width: 100%;
             height: 100%;
-            font-family: 'Courier New', monospace;
+            font-family: 'Courier New', monospace; /* Font retrò */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            touch-action: none;
+            touch-action: none; /* Disabilita gesture del browser */
         }
 
-        /* --- BLOCCO ORIENTAMENTO --- */
+        /* --- MESSAGGIO "RUOTA IL TELEFONO" --- */
         #orientation-lock {
-            display: none;
+            display: none; /* Di base è nascosto */
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999;
             color: #fff; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; font-size: 24px; font-weight: bold;
         }
+        /* Se lo schermo è orizzontale, mostriamo il blocco */
         @media screen and (orientation: landscape) {
             #orientation-lock { display: flex; }
         }
 
-        /* --- TOP BAR --- */
+        /* --- BARRA IN ALTO (Punteggio e Tasto Menu) --- */
         #top-bar {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 60px;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 20px; box-sizing: border-box;
-            z-index: 100; pointer-events: none;
+            z-index: 100; pointer-events: none; /* Lascia passare i click tranne sui tasti */
         }
         #score-box { 
             color: #c7f0d8; font-weight: bold; font-size: 24px; 
             text-shadow: 2px 2px 0 #000;
         }
         #pause-btn {
-            pointer-events: auto;
+            pointer-events: auto; /* Questo tasto deve essere cliccabile */
             background: #879c85; color: #000; border: 3px solid #000;
             padding: 8px 16px; font-weight: bold; border-radius: 10px;
             font-size: 16px; cursor: pointer; text-transform: uppercase;
         }
 
-        /* --- MASCHERA TELEFONO --- */
+        /* --- IL CONTENITORE "FUSTELLA" (Ritaglia l'immagine) --- */
         #phone-mask {
             position: relative;
             width: 98vw; 
             max-width: 460px; 
-            aspect-ratio: 9 / 18; 
+            aspect-ratio: 9 / 18; /* Proporzioni Nokia */
             
-            border-radius: 55px; 
-            overflow: hidden; 
-            box-shadow: 0 10px 60px rgba(0,0,0,0.9);
+            border-radius: 55px; /* Arrotonda gli angoli dell'immagine */
+            overflow: hidden; /* Taglia tutto ciò che esce dai bordi */
+            box-shadow: 0 10px 60px rgba(0,0,0,0.9); /* Ombra 3D */
         }
 
-        /* --- SFONDO TELEFONO --- */
+        /* --- L'IMMAGINE DI SFONDO (Il Telefono) --- */
         #phone-bg {
             width: 100%;
             height: 100%;
-            background-image: url('nokia_frame.JPG'); 
+            background-image: url('nokia_frame.JPG'); /* Assicurati che il nome sia esatto */
             background-position: center;
             background-repeat: no-repeat;
-            background-size: 128%; 
+            background-size: 128%; /* Zoom per nascondere i bordi della foto */
         }
 
-        /* --- SCHERMO DI GIOCO (MASSIMIZZATO AREA GIALLA) --- */
+        /* --- LO SCHERMO DI GIOCO (LE TUE COORDINATE) --- */
         #screen-container {
             position: absolute;
             
-            /* COORDINATE ESTREME PER RIEMPIRE TUTTO IL VETRO */
-            top: 24%;       /* In alto subito sotto la scritta NOKIA */
-            left: 8%;      /* Tutto a sinistra quasi sul bordo blu */
-            width: 84%;     /* Larghezza massima da lato a lato */
-            height: 55%;    /* Altezza massima fino alla curva dei tasti */
+            /* COORDINATE CALIBRATE DA TE */
+            top: 24%;       
+            left: 8%;      
+            width: 82%;     
+            height: 51%;    
             
-            background-color: trasparent; 
+            background-color: transparent; /* Sfondo trasparente per non coprire nulla */
             
-            /* Curvatura Asimmetrica: Sopra leggero, Sotto curvo (forma a scudo) */
-            border-radius: 15px 15px 50px 50px; 
-            box-shadow: none;
-            /*box-shadow: inset 0 0 15px rgba(0,0,0,0.1);*/
+            /* BORDI ARROTONDATI (Smooth) */
+            /* Sopra meno curvo, Sotto molto curvo per seguire il design Nokia */
+            border-radius: 20px 20px 60px 60px; 
+            
+            overflow: hidden; /* Fondamentale: taglia il gioco che esce dai bordi */
             z-index: 10;
         }
 
         canvas {
             display: block; width: 100%; height: 100%;
-            image-rendering: pixelated;
-            mix-blend-mode: multiply; 
+            image-rendering: pixelated; /* Mantiene i pixel nitidi */
+            mix-blend-mode: multiply; /* Fonde il gioco con le ombre dello schermo sotto */
             opacity: 0.9;
         }
 
-        /* --- TOUCH LAYER --- */
+        /* --- STRATO TOUCH INVISIBILE (Per i comandi) --- */
         #touch-surface {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50;
         }
 
-        /* --- MENU --- */
+        /* --- MENU (Grafica Retro) --- */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.92); z-index: 500;
@@ -153,8 +155,8 @@
     <div id="touch-surface"></div>
 
     <div id="menu-main" class="overlay hidden">
-        <h1 id="menu-title">PAUSED</h1>
-        <button class="menu-btn" id="btn-resume">RESUME</button>
+        <h1 id="menu-title">SNAKE 3310</h1>
+        <button class="menu-btn" id="btn-resume" style="display:none;">RESUME</button>
         <button class="menu-btn" id="btn-new">NEW GAME</button>
         <button class="menu-btn" id="btn-best">BEST SCORE</button>
         <button class="menu-btn" id="btn-about">ABOUT</button>
@@ -169,7 +171,7 @@
     <div id="menu-about" class="overlay hidden">
         <h1>ABOUT</h1>
         <div style="text-align:center; line-height:1.6; font-size:20px;">
-            SNAKE 3310<br>REMASTERED<br><br>
+            SNAKE 3310<br>LEGEND EDITION<br><br>
             <a href="https://github.com/Dad-89" style="font-size:70px; color:#ff4444; text-decoration:none; display:block; animation: pulse 1s infinite;">&hearts;</a>
         </div>
         <button class="menu-btn" id="btn-back-ab">BACK</button>
@@ -178,25 +180,44 @@
     <style>@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }</style>
 
 <script>
-    const canvas = document.getElementById("gc");
-    const ctx = canvas.getContext("2d");
-    const screenCont = document.getElementById("screen-container");
+    // --- 1. CONFIGURAZIONE MOTORE DI GIOCO ---
+    const canvas = document.getElementById("gc"); // Il "foglio" dove disegniamo
+    const ctx = canvas.getContext("2d"); // La "penna" per disegnare
+    const screenCont = document.getElementById("screen-container"); // Il contenitore HTML
     
-    const GRID = 10; const FPS = 15;
+    const GRID = 10; // Grandezza di ogni quadratino (pixel)
+    const FPS = 15;  // Velocità del gioco (Frames Per Second)
     
-    let tX, tY, px, py, trail=[], tail=5, score=0;
-    let xv=0, yv=0, nextX=1, nextY=0, hasMoved=false;
-    let ax, ay, isPaused=false, isRunning=false, loopId;
+    // Variabili di stato (cambiano mentre giochi)
+    let tX, tY; // Numero di caselle totali (X e Y)
+    let px, py; // Posizione del serpente (Player X, Player Y)
+    let trail = []; // Coda del serpente (array di posizioni)
+    let tail = 5; // Lunghezza iniziale coda
+    let score = 0; // Punteggio
+    
+    let xv = 0, yv = 0; // Velocità corrente (X velocity, Y velocity)
+    let nextX = 1, nextY = 0; // Prossima direzione (buffer per controlli fluidi)
+    let hasMoved = false; // Controllo per evitare "doppi giri" in un frame
+    
+    let ax, ay; // Posizione Mela (Apple X, Apple Y)
+    let isPaused = false; // Gioco in pausa?
+    let isRunning = false; // Partita in corso?
+    let loopId; // ID del timer di gioco
 
+    // --- 2. INIZIALIZZAZIONE (Parte quando apri il sito) ---
     function init() {
-        resize();
-        window.addEventListener('resize', resize);
+        resize(); // Calcola dimensioni schermo
+        window.addEventListener('resize', resize); // Ricalcola se giri il telefono
         
+        // Attiva il touch screen
         const surf = document.getElementById("touch-surface");
         surf.addEventListener('touchstart', handleStart, {passive:false});
         surf.addEventListener('touchmove', handleMove, {passive:false});
+        
+        // Attiva la tastiera (per PC)
         document.addEventListener('keydown', handleKey);
         
+        // Collega i bottoni del menu alle funzioni
         document.getElementById("pause-btn").onclick = openMenuPause;
         document.getElementById("btn-resume").onclick = resumeGame;
         document.getElementById("btn-new").onclick = startNew;
@@ -205,130 +226,235 @@
         document.getElementById("btn-back-lb").onclick = openMain;
         document.getElementById("btn-back-ab").onclick = openMain;
 
-        initLb(); startNew();
+        initLb(); // Carica classifica salvata
+        
+        // Disegna uno sfondo verde statico all'inizio
+        ctx.fillStyle="#879c85"; 
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        
+        // APRI IL MENU INIZIALE (Non parte più da solo!)
+        openMain(); 
     }
 
+    // Funzione per adattare la griglia alle dimensioni del div CSS
     function resize() {
         canvas.width = screenCont.clientWidth;
         canvas.height = screenCont.clientHeight;
-        tX = Math.floor(canvas.width / GRID); tY = Math.floor(canvas.height / GRID);
+        tX = Math.floor(canvas.width / GRID); // Calcola quante colonne ci stanno
+        tY = Math.floor(canvas.height / GRID); // Calcola quante righe ci stanno
     }
 
+    // --- 3. AVVIO NUOVA PARTITA ---
     function startNew() {
-        closeMenus();
-        score=0; document.getElementById("score").innerText="0";
-        tail=5; trail=[]; resize();
-        px = Math.floor(tX/2); py = Math.floor(tY/2);
-        xv=1; yv=0; nextX=1; nextY=0; spawnApple();
-        isRunning=true; isPaused=false;
-        if(loopId) clearInterval(loopId); loopId = setInterval(update, 1000/FPS);
+        closeMenus(); // Chiudi menu
+        score = 0; 
+        document.getElementById("score").innerText = "0"; // Resetta UI
+        tail = 5; 
+        trail = []; 
+        resize();
+        
+        // Posiziona serpente al centro
+        px = Math.floor(tX / 2); 
+        py = Math.floor(tY / 2);
+        
+        xv = 1; yv = 0; // Parte verso destra
+        nextX = 1; nextY = 0;
+        
+        spawnApple(); // Crea prima mela
+        isRunning = true; 
+        isPaused = false;
+        
+        // Avvia il ciclo infinito del gioco
+        if(loopId) clearInterval(loopId); 
+        loopId = setInterval(update, 1000/FPS);
     }
 
+    // --- 4. CUORE DEL GIOCO (Eseguito 15 volte al secondo) ---
     function update() {
-        if(isPaused || !isRunning) return;
-        xv=nextX; yv=nextY; hasMoved=false;
-        px+=xv; py+=yv;
+        if(isPaused || !isRunning) return; // Se fermo, non fare nulla
         
-        if(px<0) px=tX-1; if(px>tX-1) px=0; if(py<0) py=tY-1; if(py>tY-1) py=0;
+        // Applica la direzione decisa dal giocatore
+        xv = nextX; yv = nextY; 
+        hasMoved = false; // Sblocca input per prossimo frame
+        
+        // Muovi testa
+        px += xv; py += yv;
+        
+        // Effetto "Pac-Man" (Passa attraverso i muri)
+        if(px < 0) px = tX - 1; 
+        if(px > tX - 1) px = 0; 
+        if(py < 0) py = tY - 1; 
+        if(py > tY - 1) py = 0;
 
-        ctx.fillStyle="#879c85"; ctx.fillRect(0,0,canvas.width,canvas.height);
+        // Disegna Sfondo (Cancella frame precedente)
+        ctx.fillStyle = "#879c85"; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        ctx.fillStyle="#1a2e1a";
+        // Disegna Serpente
+        ctx.fillStyle = "#1a2e1a"; // Colore pixel scuri Nokia
         for(let i=0; i<trail.length; i++) {
+            // Disegna quadratino con leggero bordo
             ctx.fillRect(trail[i].x*GRID, trail[i].y*GRID, GRID-0.5, GRID-0.5);
-            if(trail[i].x===px && trail[i].y===py && tail>5) gameOver();
+            
+            // CONTROLLO MORTE: Se la testa tocca il corpo
+            if(trail[i].x === px && trail[i].y === py && tail > 5) gameOver();
         }
-        trail.push({x:px, y:py}); while(trail.length>tail) trail.shift();
+        
+        // Aggiorna la coda
+        trail.push({x:px, y:py}); // Aggiungi nuova testa
+        while(trail.length > tail) trail.shift(); // Rimuovi ultimo pezzo coda
 
-        if(ax===px && ay===py) {
-            tail++; score++; document.getElementById("score").innerText=score;
-            if(navigator.vibrate) navigator.vibrate(20); spawnApple();
+        // MANGIA MELA
+        if(ax === px && ay === py) {
+            tail++; // Allunga
+            score++; 
+            document.getElementById("score").innerText = score;
+            if(navigator.vibrate) navigator.vibrate(20); // Bzz!
+            spawnApple();
         }
-        ctx.fillStyle="#000"; ctx.fillRect(ax*GRID, ay*GRID, GRID, GRID);
+        
+        // Disegna Mela
+        ctx.fillStyle = "#000"; 
+        ctx.fillRect(ax*GRID, ay*GRID, GRID, GRID);
     }
 
+    // Crea mela in posto libero
     function spawnApple() {
-        let valid=false;
+        let valid = false;
         while(!valid) {
-            ax=Math.floor(Math.random()*tX); ay=Math.floor(Math.random()*tY);
-            valid=true; for(let t of trail) if(t.x===ax && t.y===ay) valid=false;
+            ax = Math.floor(Math.random() * tX); 
+            ay = Math.floor(Math.random() * tY);
+            valid = true; 
+            // Controlla che non sia spawnata sopra il serpente
+            for(let t of trail) if(t.x === ax && t.y === ay) valid = false;
         }
     }
 
     function gameOver() {
-        if(navigator.vibrate) navigator.vibrate(400);
-        isRunning=false; saveScore(score);
+        if(navigator.vibrate) navigator.vibrate(400); // BZZZZ!
+        isRunning = false; 
+        saveScore(score); // Salva in classifica
+        
+        // Prepara Menu Game Over
         document.getElementById("menu-title").innerText = "GAME OVER";
-        document.getElementById("btn-resume").style.display = "none";
-        document.getElementById("menu-main").classList.remove("hidden");
+        document.getElementById("btn-resume").style.display = "none"; // Nascondi "Resume"
+        document.getElementById("menu-main").classList.remove("hidden"); // Mostra menu
     }
 
+    // --- 5. GESTIONE CONTROLLI (TOUCH & KEYBOARD) ---
     let tStartX;
-    function handleStart(e) { e.preventDefault(); tStartX=e.touches[0].clientX; tStartY=e.touches[0].clientY; }
+    
+    function handleStart(e) { 
+        e.preventDefault(); 
+        tStartX = e.touches[0].clientX; 
+        tStartY = e.touches[0].clientY; 
+    }
+    
     function handleMove(e) {
-        if(isPaused || !isRunning) return; e.preventDefault();
+        if(isPaused || !isRunning) return; 
+        e.preventDefault();
         if(!tStartX) return;
-        let dx=e.touches[0].clientX-tStartX, dy=e.touches[0].clientY-tStartY;
-        if(Math.abs(dx)>10 || Math.abs(dy)>10) {
-            if(hasMoved) return;
-            if(Math.abs(dx)>Math.abs(dy)) change(dx>0?1:-1, 0); else change(0, dy>0?1:-1);
-            tStartX=e.touches[0].clientX; tStartY=e.touches[0].clientY;
+        
+        let dx = e.touches[0].clientX - tStartX;
+        let dy = e.touches[0].clientY - tStartY;
+        
+        // Se il dito si muove più di 10px
+        if(Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+            if(hasMoved) return; // Aspetta prossimo frame (anti-suicidio)
+            
+            // Calcola direzione (Orizzontale o Verticale)
+            if(Math.abs(dx) > Math.abs(dy)) change(dx > 0 ? 1 : -1, 0); 
+            else change(0, dy > 0 ? 1 : -1);
+            
+            // Resetta punto di partenza per swipe continui
+            tStartX = e.touches[0].clientX; 
+            tStartY = e.touches[0].clientY;
         }
     }
+    
     function handleKey(e) {
         switch(e.key) {
-            case 'ArrowLeft': change(-1,0); break; case 'ArrowUp': change(0,-1); break;
-            case 'ArrowRight': change(1,0); break; case 'ArrowDown': change(0,1); break;
+            case 'ArrowLeft': change(-1,0); break; 
+            case 'ArrowUp': change(0,-1); break;
+            case 'ArrowRight': change(1,0); break; 
+            case 'ArrowDown': change(0,1); break;
             case 'p': openMenuPause(); break;
         }
     }
+    
     function change(x,y) {
-        if(x===-xv && x!==0) return; if(y===-yv && y!==0) return;
-        nextX=x; nextY=y; hasMoved=true;
+        // Non puoi tornare indietro di colpo (es. se vai su non puoi premere giù)
+        if(x === -xv && x !== 0) return; 
+        if(y === -yv && y !== 0) return;
+        nextX = x; nextY = y; 
+        hasMoved = true;
     }
 
+    // --- 6. GESTIONE MENU ---
     function openMenuPause() {
-        if(!isRunning && document.getElementById("menu-title").innerText==="GAME OVER") {
+        if(!isRunning && document.getElementById("menu-title").innerText === "GAME OVER") {
              document.getElementById("menu-main").classList.remove("hidden");
              return;
         }
         isPaused = true;
-        document.getElementById("menu-title").innerText="PAUSED";
-        document.getElementById("btn-resume").style.display="block";
+        document.getElementById("menu-title").innerText = "PAUSED";
+        document.getElementById("btn-resume").style.display = "block"; // Mostra tasto Resume
         openMain();
     }
-    function resumeGame() { closeMenus(); isPaused = false; }
-    function closeMenus() { document.querySelectorAll('.overlay').forEach(e=>e.classList.add('hidden')); }
+    
+    function resumeGame() { 
+        closeMenus(); 
+        isPaused = false; 
+    }
+    
+    // Funzioni helper per mostrare/nascondere div
+    function closeMenus() { document.querySelectorAll('.overlay').forEach(e => e.classList.add('hidden')); }
     function openMain() { closeMenus(); document.getElementById("menu-main").classList.remove("hidden"); }
     function showLb() { closeMenus(); renderLb(); document.getElementById("menu-lb").classList.remove("hidden"); }
     function showAb() { closeMenus(); document.getElementById("menu-about").classList.remove("hidden"); }
 
-    const LB_KEY='snake_remaster_lb';
+    // --- 7. SALVATAGGIO DATI (LOCALSTORAGE) ---
+    const LB_KEY = 'snake_legend_lb'; // Chiave database browser
+    
     function initLb() {
+        // Se è la prima volta, crea classifica finta
         if(!localStorage.getItem(LB_KEY)) localStorage.setItem(LB_KEY, JSON.stringify([
-            {n:'AAAAAAAAA',s:999999}, {n:'HACKER',s:500}, {n:'RETRO',s:200}, {n:'NOKIA',s:50}, {n:'USER',s:10}
+            {n:'AAAAAAAAA',s:999999}, // Easter Egg richiesto
+            {n:'HACKER',s:500}, 
+            {n:'RETRO',s:200}, 
+            {n:'NOKIA',s:50}, 
+            {n:'USER',s:10}
         ]));
     }
+    
     function saveScore(s) {
         let d = JSON.parse(localStorage.getItem(LB_KEY));
-        if(s>d[d.length-1].s) {
-            let n=prompt("HIGHSCORE! Name:","PLAYER"); if(!n) n="UNKNOWN";
-            d.push({n:n.substring(0,10).toUpperCase(),s:s}); d.sort((a,b)=>b.s-a.s);
+        // Se il punteggio entra in Top 5
+        if(s > d[d.length-1].s) {
+            let n = prompt("RECORD! Inserisci Nome:","PLAYER"); 
+            if(!n) n = "UNKNOWN";
+            // Aggiungi, Ordina, Taglia a 5
+            d.push({n:n.substring(0,10).toUpperCase(),s:s}); 
+            d.sort((a,b)=>b.s-a.s);
             localStorage.setItem(LB_KEY, JSON.stringify(d.slice(0,5)));
         }
     }
+    
     function renderLb() {
-        let d=JSON.parse(localStorage.getItem(LB_KEY));
-        let l=document.getElementById("lb-list"); l.innerHTML="";
-        d.forEach((x,i)=>{
-            let r=document.createElement("div"); r.className="lb-row";
-            if(i===0 && x.s===999999) r.classList.add("gold");
-            r.innerHTML=`<span>${i+1}.${x.n}</span><span>${x.s}</span>`;
+        let d = JSON.parse(localStorage.getItem(LB_KEY));
+        let l = document.getElementById("lb-list"); 
+        l.innerHTML = "";
+        d.forEach((x,i) => {
+            let r = document.createElement("div"); 
+            r.className = "lb-row";
+            if(i === 0 && x.s === 999999) r.classList.add("gold"); // Colora d'oro il primo
+            r.innerHTML = `<span>${i+1}.${x.n}</span><span>${x.s}</span>`;
             l.appendChild(r);
         });
     }
 
-    window.onload=init;
+    // Start!
+    window.onload = init;
 </script>
 </body>
 </html>
