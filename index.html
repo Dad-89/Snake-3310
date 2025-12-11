@@ -59,57 +59,47 @@
             font-size: 16px; cursor: pointer; text-transform: uppercase;
         }
 
-        /* --- CONTENITORE TELEFONO (FUSTELLA) --- */
-        #phone-mask {
+        /* --- STRUTTURA TELEFONO (UNIFICATA ALLA V1) --- */
+        /* Questo contenitore fa da maschera e sfondo insieme, come nella V1 */
+        #phone-body {
             position: relative;
             width: 98vw; 
             max-width: 460px; 
             aspect-ratio: 9 / 18; 
             
+            /* STILE V1 PURO */
             border-radius: 55px; 
             overflow: hidden; 
             box-shadow: 0 10px 60px rgba(0,0,0,0.9);
-        }
-
-        /* --- IMMAGINE SFONDO --- */
-        #phone-bg {
-            width: 100%;
-            height: 100%;
-            background-image: url('nokia_frame.JPG'); /* Controlla il nome file! */
+            
+            /* BACKGROUND IMAGE DIRETTO */
+            background-image: url('nokia_frame.JPG'); 
             background-position: center;
             background-repeat: no-repeat;
-            background-size: 128%; /* Zoom per tagliare i bordi scacchi */
+            background-size: 128%; /* Zoom V1 */
         }
 
-        /* --- SCHERMO DI GIOCO (TUO STILE BLOCCATO) --- */
+        /* --- SCHERMO DI GIOCO (STILE V1 ESATTO) --- */
         #screen-container {
             position: absolute;
-            /* Sposta l'inizio dello schermo più in basso, sotto la scritta NOKIA */
+            /* COORDINATE V1 */
             top: 28%;
-            /* Allunga lo schermo verso il basso, fino a prima dei tasti */
             height: 34%;
-            /* Mantiene la posizione orizzontale */
             left: 13%;
-            /* Mantiene la larghezza */
             width: 73%;
-            /* Rende lo sfondo trasparente */
+            
             background-color: transparent;
-            /* Rimuove l'ombra */
             box-shadow: none;
-            /* Arrotonda leggermente gli angoli per seguire la forma dello schermo */
             border-radius: 15px;
-            /* Assicura che il serpente non esca dai bordi del contenitore */
             overflow: hidden;
             z-index: 10;
         }
 
         canvas {
             display: block; width: 100%; height: 100%;
-            image-rendering: pixelated;
-            /* QUESTA È LA CHIAVE PER IL REALISMO */
-            /* Fonde i pixel neri con le ombre verdi dell'immagine sotto */
+            image-rendering: pixelated; 
             mix-blend-mode: multiply; 
-            opacity: 0.85; 
+            opacity: 0.85;
         }
 
         /* --- INPUT LAYER --- */
@@ -135,7 +125,6 @@
             font-family: inherit; cursor: pointer; transition: transform 0.1s;
         }
         .menu-btn:active { background: #879c85; color: #000; transform: scale(0.95); }
-        
         .gold { color: #ffd700; text-shadow: 0 0 10px orange; }
         .lb-row { width: 300px; display: flex; justify-content: space-between; border-bottom: 1px dashed #555; padding: 12px 0; font-size: 20px; }
         
@@ -152,10 +141,8 @@
         <button id="pause-btn">MENU</button>
     </div>
 
-    <div id="phone-mask">
-        <div id="phone-bg">
-            <div id="screen-container"><canvas id="gc"></canvas></div>
-        </div>
+    <div id="phone-body">
+        <div id="screen-container"><canvas id="gc"></canvas></div>
     </div>
 
     <div id="touch-surface"></div>
@@ -197,7 +184,7 @@
         }
         if (audioCtx.state === 'suspended') {
             audioCtx.resume().then(() => {
-                console.log("Audio Context unlocked!");
+                console.log("Audio unlocked");
             });
         }
         document.body.removeEventListener('touchstart', unlockAudio);
