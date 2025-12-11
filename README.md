@@ -30,4 +30,13 @@ Niente account, niente pubblicità, niente "acquista gemme". Solo tu, un serpent
 4.  Non mangiare la tua coda. È l'unica regola che conta dal 1997.
 
 ---
+
+### 🚨 Aggiornamento v2.0: "Adesso mi sentono"
+
+Abbiamo rilasciato la **Versione 2.0**.
+Cosa cambia? Ora il gioco ha l'**audio** (preparati a dei *bip* ad alta fedeltà) ed è diventato una **PWA**, il che significa che puoi installarlo sulla Home del telefono proprio di fianco all'app della banca. Il contrasto è poetico.
+
+👉 **Per la lista completa delle novità (e qualche battuta extra), leggi il [CHANGELOG](CHANGELOG.md).**
+
+---
 *Progetto realizzato per puro divertimento, tra un ricordo e l'altro.*
