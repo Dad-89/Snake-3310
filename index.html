@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Snake 3310 Gold</title>
+    <title>Snake 3310 Full</title>
     <style>
         /* --- LAYOUT GENERALE --- */
         body {
-            background: #151515; /* Nero profondo */
+            background: #151515;
             margin: 0;
             overflow: hidden;
             position: fixed;
@@ -54,7 +54,7 @@
             font-size: 16px; cursor: pointer; text-transform: uppercase;
         }
 
-        /* --- MASCHERA TELEFONO (FUSTELLA) --- */
+        /* --- MASCHERA TELEFONO --- */
         #phone-mask {
             position: relative;
             width: 98vw; 
@@ -73,34 +73,31 @@
             background-image: url('nokia_frame.JPG'); 
             background-position: center;
             background-repeat: no-repeat;
-            background-size: 128%; /* Zoom per tagliare bordi */
+            background-size: 128%; 
         }
 
-        /* --- SCHERMO DI GIOCO (RICALIBRATO) --- */
+        /* --- SCHERMO DI GIOCO (AREA GIALLA MAXI) --- */
         #screen-container {
             position: absolute;
             
-            /* COORDINATE DEFINITIVE */
-            top: 28%;      
-            left: 17.5%;   
-            width: 65%;    
-            height: 27%;   
+            /* COORDINATE PER RIEMPIRE TUTTO IL VETRO (AREA GIALLA) */
+            top: 23%;       /* Molto più in alto */
+            left: 13%;      /* Molto più a sinistra */
+            width: 74%;     /* Larghezza massima */
+            height: 33%;    /* Altezza massima fino ai tasti */
             
             background-color: #879c85; 
             
-            /* Curvatura specifica per fondersi con la forma del 3310 */
-            border-radius: 5px 5px 15px 15px; 
+            /* Curvatura che segue la forma del vetro del 3310 */
+            border-radius: 15px 15px 40px 40px; 
             
-            /* Ombra interna */
             box-shadow: inset 0 0 20px rgba(0,0,0,0.15);
-            
             z-index: 10;
         }
 
         canvas {
             display: block; width: 100%; height: 100%;
             image-rendering: pixelated;
-            /* Fonde il gioco con lo sfondo per realismo */
             mix-blend-mode: multiply; 
             opacity: 0.9;
         }
