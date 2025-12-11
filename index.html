@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Snake 3310 Gold</title>
+    <title>Snake 3310 Final</title>
     <style>
         /* --- AMBIENTE (TAVOLO) --- */
         body {
-            /* Sfondo elegante scuro (Radial Gradient) per far risaltare il telefono */
-            background: radial-gradient(circle at center, #3b4b5b 0%, #1a1f26 100%);
+            /* Sfondo scuro neutro per far risaltare il telefono */
+            background: radial-gradient(circle at center, #2b323c 0%, #101010 100%);
             margin: 0;
-            overflow: hidden; /* Blocca scroll */
-            position: fixed; /* Blocca rimbalzo iOS */
+            overflow: hidden;
+            position: fixed;
             width: 100%;
             height: 100%;
             font-family: 'Courier New', monospace;
@@ -24,7 +24,7 @@
             touch-action: none;
         }
 
-        /* --- TOP BAR (HUD) --- */
+        /* --- TOP BAR --- */
         #top-bar {
             position: absolute;
             top: 0; left: 0; width: 100%;
@@ -32,11 +32,11 @@
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 20px; box-sizing: border-box;
             z-index: 100;
-            pointer-events: none; /* Click passanti */
+            pointer-events: none;
         }
         #score-box { 
             color: #c7f0d8; font-weight: bold; font-size: 22px; 
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
         #pause-btn {
             pointer-events: auto;
@@ -45,60 +45,58 @@
             padding: 8px 20px; font-weight: bold; border-radius: 20px;
             font-size: 14px; cursor: pointer;
             box-shadow: 0 4px 0 rgba(0,0,0,0.5);
-            text-transform: uppercase;
         }
         #pause-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5); }
 
-        /* --- IL TELEFONO (FUSTELLATURA DIGITALE) --- */
+        /* --- IL TELEFONO (FUSTELLA) --- */
         #phone-body {
             position: relative;
-            /* Dimensioni responsive ma bloccate per non deformarsi */
+            /* Dimensioni fisse relative per mantenere le proporzioni 3310 */
             width: 90vw; 
             max-width: 420px; 
-            aspect-ratio: 9 / 18.5; /* Ratio calibrato sul 3310 */
+            aspect-ratio: 9 / 19; /* Leggermente più alto per includere tutto */
             
-            /* LA MAGIA: Ritaglia i bordi bianchi del JPG */
-            border-radius: 45px; 
-            background-image: url('nokia_frame.jpg');
+            /* RITAGLIO DEI BORDI BIANCHI DEL JPG */
+            border-radius: 50px; /* Curvatura forte agli angoli */
+            
+            background-image: url('nokia_frame.JPG'); /* FILE RICHIESTO */
             background-position: center;
             background-repeat: no-repeat;
             
-            /* ZOOM TATTICO: 103% taglia via i bordi sporchi dell'immagine */
-            background-size: 103%; 
+            /* ZOOM: 102% per assicurarsi che i bordi bianchi escano fuori dal ritaglio */
+            background-size: 102%; 
             
-            overflow: hidden; /* Nasconde tutto ciò che esce dalla sagoma */
-
-            /* Ombra profonda per staccarlo dallo sfondo */
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            overflow: hidden; /* Taglia via tutto ciò che esce dalla curvatura */
+            
+            /* Ombra per staccarlo dallo sfondo */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
         }
 
-        /* --- LO SCHERMO LCD --- */
+        /* --- LO SCHERMO DI GIOCO (CALIBRATO SULLE LINEE ROSSE) --- */
         #screen-container {
             position: absolute;
-            /* NUOVA CALIBRAZIONE DI PRECISIONE */
-            top: 33.5%; 
-            left: 23.5%; 
-            width: 53%; 
-            height: 25.5%;
+            /* Coordinate ricalcolate sul disegno rosso */
+            top: 26%;     /* Più in alto di prima */
+            left: 21%;    /* Più a sinistra per allargare */
+            width: 58%;   /* Più largo */
+            height: 28%;  /* Più alto per coprire l'area verde */
             
-            background-color: #879c85; /* Colore base Nokia */
-            border-radius: 4px; /* Leggero smusso LCD */
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.15); /* Ombra interna realistica */
+            background-color: #879c85; 
+            border-radius: 5px; 
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+            z-index: 10;
         }
 
         canvas {
             display: block; width: 100%; height: 100%;
             image-rendering: pixelated;
-            /* Nessuna opacità, colore pieno per coprire l'immagine sotto */
-            opacity: 1; 
         }
 
-        /* --- INPUT LAYER INVISIBILE --- */
+        /* --- TOUCH LAYER --- */
         #touch-surface {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: 50;
-            /* background: rgba(255,0,0,0.2); /* Scommenta per debug */
         }
 
         /* --- MENU OVERLAYS --- */
@@ -111,26 +109,20 @@
         }
         .hidden { display: none !important; }
         
-        h1 { 
-            font-size: 40px; margin-bottom: 40px; 
-            text-transform: uppercase; letter-spacing: 5px;
-            border-bottom: 2px solid #879c85; padding-bottom: 10px;
-        }
+        h1 { font-size: 36px; margin-bottom: 30px; border-bottom: 2px solid #879c85; }
         
         .menu-btn {
-            width: 260px; padding: 18px; margin: 12px;
+            width: 250px; padding: 15px; margin: 10px;
             background: transparent; border: 3px solid #879c85;
-            color: #879c85; font-weight: bold; font-size: 22px;
-            text-transform: uppercase; font-family: inherit; cursor: pointer;
-            transition: all 0.1s;
+            color: #879c85; font-weight: bold; font-size: 20px;
+            cursor: pointer;
         }
-        .menu-btn:active { background: #879c85; color: #000; transform: scale(0.98); }
+        .menu-btn:active { background: #879c85; color: #000; }
         
-        .gold { color: #ffd700; text-shadow: 0 0 10px #ff8c00; }
-        .lb-row { width: 280px; display: flex; justify-content: space-between; border-bottom: 1px dashed #555; padding: 12px 0; font-size: 18px; }
+        .gold { color: #ffd700; text-shadow: 0 0 10px orange; }
+        .lb-row { width: 280px; display: flex; justify-content: space-between; border-bottom: 1px dashed #555; padding: 10px 0; font-size: 18px; }
 
     </style>
-
 </head>
 <body>
 
@@ -148,7 +140,7 @@
     <div id="touch-surface"></div>
 
     <div id="menu-main" class="overlay hidden">
-        <h1 id="menu-title">PAUSED</h1>
+        <h1>PAUSED</h1>
         <button class="menu-btn" id="btn-resume">RESUME</button>
         <button class="menu-btn" id="btn-new">NEW GAME</button>
         <button class="menu-btn" id="btn-best">BEST SCORE</button>
@@ -165,44 +157,31 @@
         <h1>ABOUT</h1>
         <div style="text-align:center; line-height:1.6; font-size:20px;">
             PURE NOKIA<br>EXPERIENCE<br><br>
-            <a href="https://github.com/Dad-89" style="font-size:70px; color:#ff4444; text-decoration:none; display:block; animation: pulse 1s infinite;">&hearts;</a>
+            <a href="https://github.com/Dad-89" style="font-size:60px; color:#ff4444; text-decoration:none; display:block; animation: pulse 1s infinite;">&hearts;</a>
         </div>
         <button class="menu-btn" id="btn-back-ab">BACK</button>
     </div>
-
     <style>@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }</style>
 
 <script>
-    /* --- ENGINE SETUP --- */
     const canvas = document.getElementById("gc");
     const ctx = canvas.getContext("2d");
     const screenCont = document.getElementById("screen-container");
     
-    // Parametri Gioco
-    const GRID = 10; 
-    const FPS = 15;
-    
-    // Stato
-    let tX, tY; 
-    let px, py, trail=[], tail=5, score=0;
+    const GRID = 10; const FPS = 15;
+    let tX, tY, px, py, trail=[], tail=5, score=0;
     let xv=0, yv=0, nextX=1, nextY=0, hasMoved=false;
-    let ax, ay;
-    
-    let isPaused=false, isRunning=false, loopId;
+    let ax, ay, isPaused=false, isRunning=false, loopId;
 
-    // --- INIT ---
     function init() {
         resize();
         window.addEventListener('resize', resize);
         
-        // Touch Engine (Full Screen)
         const surf = document.getElementById("touch-surface");
         surf.addEventListener('touchstart', handleStart, {passive:false});
         surf.addEventListener('touchmove', handleMove, {passive:false});
-        
         document.addEventListener('keydown', handleKey);
         
-        // UI Bindings
         document.getElementById("pause-btn").onclick = togglePause;
         document.getElementById("btn-resume").onclick = togglePause;
         document.getElementById("btn-new").onclick = startNew;
@@ -211,63 +190,42 @@
         document.getElementById("btn-back-lb").onclick = openMain;
         document.getElementById("btn-back-ab").onclick = openMain;
 
-        initLb();
-        startNew();
+        initLb(); startNew();
     }
 
     function resize() {
         canvas.width = screenCont.clientWidth;
         canvas.height = screenCont.clientHeight;
-        tX = Math.floor(canvas.width / GRID);
-        tY = Math.floor(canvas.height / GRID);
+        tX = Math.floor(canvas.width / GRID); tY = Math.floor(canvas.height / GRID);
     }
 
-    // --- GAMEPLAY ---
     function startNew() {
-        closeMenus();
-        score=0; document.getElementById("score").innerText="0";
-        tail=5; trail=[];
-        resize();
+        closeMenus(); score=0; document.getElementById("score").innerText="0";
+        tail=5; trail=[]; resize();
         px = Math.floor(tX/2); py = Math.floor(tY/2);
-        xv=1; yv=0; nextX=1; nextY=0;
-        spawnApple();
+        xv=1; yv=0; nextX=1; nextY=0; spawnApple();
         isRunning=true; isPaused=false;
-        if(loopId) clearInterval(loopId);
-        loopId = setInterval(update, 1000/FPS);
+        if(loopId) clearInterval(loopId); loopId = setInterval(update, 1000/FPS);
     }
 
     function update() {
         if(isPaused || !isRunning) return;
-        
-        // Input Buffer Apply
         xv=nextX; yv=nextY; hasMoved=false;
         px+=xv; py+=yv;
+        if(px<0) px=tX-1; if(px>tX-1) px=0; if(py<0) py=tY-1; if(py>tY-1) py=0;
 
-        // Wrap (Muri infiniti)
-        if(px<0) px=tX-1; if(px>tX-1) px=0;
-        if(py<0) py=tY-1; if(py>tY-1) py=0;
-
-        // Draw Sfondo LCD
-        ctx.fillStyle="#879c85"; 
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-
-        // Draw Snake (Nero Pixelato)
+        ctx.fillStyle="#879c85"; ctx.fillRect(0,0,canvas.width,canvas.height);
         ctx.fillStyle="#1a2e1a";
         for(let i=0; i<trail.length; i++) {
-            // Piccolo gap tra i pixel per realismo
             ctx.fillRect(trail[i].x*GRID, trail[i].y*GRID, GRID-0.5, GRID-0.5);
             if(trail[i].x===px && trail[i].y===py && tail>5) gameOver();
         }
-        trail.push({x:px, y:py});
-        while(trail.length>tail) trail.shift();
+        trail.push({x:px, y:py}); while(trail.length>tail) trail.shift();
 
-        // Mela Logic
         if(ax===px && ay===py) {
             tail++; score++; document.getElementById("score").innerText=score;
-            if(navigator.vibrate) navigator.vibrate(20);
-            spawnApple();
+            if(navigator.vibrate) navigator.vibrate(20); spawnApple();
         }
-        // Disegna Mela
         ctx.fillStyle="#000"; ctx.fillRect(ax*GRID, ay*GRID, GRID, GRID);
     }
 
@@ -275,8 +233,7 @@
         let valid=false;
         while(!valid) {
             ax=Math.floor(Math.random()*tX); ay=Math.floor(Math.random()*tY);
-            valid=true;
-            for(let t of trail) if(t.x===ax && t.y===ay) valid=false;
+            valid=true; for(let t of trail) if(t.x===ax && t.y===ay) valid=false;
         }
     }
 
@@ -288,50 +245,33 @@
         document.getElementById("menu-main").classList.remove("hidden");
     }
 
-    // --- INPUT ENGINE ---
-    let tStartX, tStartY;
+    let tStartX;
     function handleStart(e) { e.preventDefault(); tStartX=e.touches[0].clientX; tStartY=e.touches[0].clientY; }
-    
     function handleMove(e) {
-        if(isPaused || !isRunning) return;
-        e.preventDefault();
+        if(isPaused || !isRunning) return; e.preventDefault();
         if(!tStartX) return;
-        
-        let dx = e.touches[0].clientX - tStartX;
-        let dy = e.touches[0].clientY - tStartY;
-        
-        // Sensibilità 10px
+        let dx=e.touches[0].clientX-tStartX, dy=e.touches[0].clientY-tStartY;
         if(Math.abs(dx)>10 || Math.abs(dy)>10) {
-            if(hasMoved) return; // Buffer pieno, aspetta frame
-            if(Math.abs(dx)>Math.abs(dy)) change(dx>0?1:-1, 0);
-            else change(0, dy>0?1:-1);
-            
-            // Reset per movimento continuo
+            if(hasMoved) return;
+            if(Math.abs(dx)>Math.abs(dy)) change(dx>0?1:-1, 0); else change(0, dy>0?1:-1);
             tStartX=e.touches[0].clientX; tStartY=e.touches[0].clientY;
         }
     }
-
     function handleKey(e) {
         switch(e.key) {
-            case 'ArrowLeft': change(-1,0); break;
-            case 'ArrowUp': change(0,-1); break;
-            case 'ArrowRight': change(1,0); break;
-            case 'ArrowDown': change(0,1); break;
+            case 'ArrowLeft': change(-1,0); break; case 'ArrowUp': change(0,-1); break;
+            case 'ArrowRight': change(1,0); break; case 'ArrowDown': change(0,1); break;
             case 'p': togglePause(); break;
         }
     }
-    
     function change(x,y) {
-        // Anti-Suicidio
-        if(x===-xv && x!==0) return;
-        if(y===-yv && y!==0) return;
+        if(x===-xv && x!==0) return; if(y===-yv && y!==0) return;
         nextX=x; nextY=y; hasMoved=true;
     }
 
-    // --- MENUS & STORAGE ---
     function togglePause() {
         if(!isRunning && document.getElementById("menu-title").innerText==="GAME OVER") return;
-        isPaused = !isPaused;
+        isPaused=!isPaused;
         if(isPaused) {
             document.getElementById("menu-title").innerText="PAUSED";
             document.getElementById("btn-resume").style.display="block";
@@ -343,19 +283,17 @@
     function showLb() { closeMenus(); renderLb(); document.getElementById("menu-lb").classList.remove("hidden"); }
     function showAb() { closeMenus(); document.getElementById("menu-about").classList.remove("hidden"); }
 
-    const LB_KEY='snake_gold_lb';
+    const LB_KEY='snake_final_lb';
     function initLb() {
         if(!localStorage.getItem(LB_KEY)) localStorage.setItem(LB_KEY, JSON.stringify([
-            {n:'AAAAAAAAA',s:999999}, {n:'HACKER',s:500}, {n:'RETRO',s:200}, {n:'NOKIA',s:50}, {n:'USER',s:10}
+            {n:'AAAAAAAAA',s:999999}, {n:'PRO_GAMER',s:500}, {n:'OLD_SKOOL',s:200}, {n:'NOKIA',s:50}, {n:'GUEST',s:10}
         ]));
     }
     function saveScore(s) {
-        let d = JSON.parse(localStorage.getItem(LB_KEY));
+        let d=JSON.parse(localStorage.getItem(LB_KEY));
         if(s>d[d.length-1].s) {
-            let n=prompt("HIGHSCORE! Name:","PLAYER");
-            if(!n) n="UNKNOWN";
-            d.push({n:n.substring(0,10).toUpperCase(),s:s});
-            d.sort((a,b)=>b.s-a.s);
+            let n=prompt("HIGHSCORE! Name:","PLAYER"); if(!n) n="UNKNOWN";
+            d.push({n:n.substring(0,10).toUpperCase(),s:s}); d.sort((a,b)=>b.s-a.s);
             localStorage.setItem(LB_KEY, JSON.stringify(d.slice(0,5)));
         }
     }
