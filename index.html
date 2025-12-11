@@ -3,138 +3,296 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>Snake Fullscreen</title>
+    <title>Snake Pro</title>
     <style>
-        /* CSS: Fullscreen Immersion */
+        /* --- CORE STYLES --- */
         body {
-            background-color: #879c85; /* Colore schermo Nokia */
+            background-color: #879c85; /* Nokia Screen */
             margin: 0;
-            overflow: hidden; /* Blocca lo scroll della pagina */
-            touch-action: none; /* Disabilita gesture browser */
+            overflow: hidden;
+            touch-action: none;
             font-family: 'Courier New', monospace;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* --- GAME LAYOUT --- */
+        #game-area {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
         }
         canvas {
             display: block;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             image-rendering: pixelated;
         }
-        #ui-overlay {
+
+        /* --- TOP HUD (SAFE ZONE) --- */
+        #hud {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px; /* Safe Zone Height */
+            background: rgba(199, 240, 216, 0.9);
+            border-bottom: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+        .hud-text {
+            font-weight: bold;
+            font-size: 16px;
             color: #000;
+        }
+        #pause-btn {
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-weight: bold;
+            font-family: inherit;
+        }
+
+        /* --- MENU OVERLAY --- */
+        #menu-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 20;
+            display: flex; /* Flex per centrare */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #c7f0d8;
+        }
+        .hidden { display: none !important; }
+        
+        h1 { margin: 0 0 20px 0; font-size: 30px; text-transform: uppercase; letter-spacing: 2px;}
+        
+        .menu-btn {
+            background: #879c85;
+            color: #000;
+            border: 2px solid #c7f0d8;
+            padding: 12px 24px;
+            margin: 8px;
+            font-family: 'Courier New', monospace;
             font-weight: bold;
             font-size: 18px;
-            background: rgba(199, 240, 216, 0.8); /* Backlight semi-trasparente */
-            padding: 5px 10px;
-            border: 2px solid #333;
-            border-radius: 4px;
-            pointer-events: none; /* Lascia passare i touch al canvas */
+            width: 200px;
+            text-transform: uppercase;
+            cursor: pointer;
         }
-        /* Istruzione iniziale che sparisce */
-        #hint {
+        .menu-btn:active { background: #c7f0d8; }
+
+        /* --- LEADERBOARD --- */
+        #leaderboard {
+            margin-top: 20px;
+            border: 1px solid #555;
+            padding: 10px;
+            background: #222;
+            width: 80%;
+            max-width: 300px;
+        }
+        .lb-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 4px;
+            border-bottom: 1px dashed #444;
+        }
+        .lb-name { color: #fff; }
+        .lb-score { color: #879c85; font-weight: bold; }
+        .easter-egg { color: #ffeb3b; text-shadow: 0 0 5px orange; }
+
+        /* --- D-PAD CONTROLS --- */
+        #controls {
             position: absolute;
-            top: 50%;
+            bottom: 20px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            color: #333;
-            font-weight: bold;
-            text-align: center;
-            opacity: 0.5;
-            pointer-events: none;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 180px;
+            z-index: 15; /* Sopra il canvas, sotto il menu */
+            opacity: 0.6; /* Semitrasparente */
         }
+        .d-btn {
+            position: absolute;
+            width: 60px; height: 60px;
+            background: #333;
+            border: 2px solid #879c85;
+            border-radius: 50%;
+            display: flex;
+            align-items: center; justify-content: center;
+            color: white; font-size: 24px;
+            touch-action: manipulation;
+        }
+        .d-btn:active { background: #fff; color: #000; transform: scale(0.9); }
+        
+        #btn-up { top: 0; left: 60px; }
+        #btn-left { top: 60px; left: 0; }
+        #btn-right { top: 60px; left: 120px; }
+        #btn-down { top: 120px; left: 60px; }
+
     </style>
 </head>
 <body>
 
-<div id="ui-overlay">
-    SCORE: <span id="score">0</span> | BEST: <span id="best">0</span>
-</div>
-<div id="hint">SWIPE TO START</div>
+<div id="game-area">
+    <div id="hud">
+        <div class="hud-text">SCORE: <span id="score-display">0</span></div>
+        <button id="pause-btn" ontouchstart="togglePause()">II</button>
+    </div>
 
-<canvas id="gc"></canvas>
+    <canvas id="gc"></canvas>
+
+    <div id="controls">
+        <div id="btn-up" class="d-btn" ontouchstart="input(0, -1)">▲</div>
+        <div id="btn-left" class="d-btn" ontouchstart="input(-1, 0)">◀</div>
+        <div id="btn-right" class="d-btn" ontouchstart="input(1, 0)">▶</div>
+        <div id="btn-down" class="d-btn" ontouchstart="input(0, 1)">▼</div>
+    </div>
+
+    <div id="menu-overlay">
+        <h1 id="menu-title">PAUSED</h1>
+        <button class="menu-btn" id="btn-resume" onclick="togglePause()">RESUME</button>
+        <button class="menu-btn" onclick="startNewGame()">NEW GAME</button>
+        
+        <div id="leaderboard">
+            <div style="text-align:center; color:#879c85; margin-bottom:5px;">TOP 5 RECORDS</div>
+            <div id="lb-list"></div>
+        </div>
+    </div>
+</div>
 
 <script>
+    // --- ENGINE & STATE ---
     const canvas = document.getElementById("gc");
     const ctx = canvas.getContext("2d");
-    const scoreEl = document.getElementById("score");
-    const bestEl = document.getElementById("best");
-    const hintEl = document.getElementById("hint");
+    const menu = document.getElementById("menu-overlay");
+    const resumeBtn = document.getElementById("btn-resume");
+    const scoreDisplay = document.getElementById("score-display");
+    const lbList = document.getElementById("lb-list");
 
-    // Configurazione Dinamica
-    let gridSize = 20; // Grandezza quadratino
+    let gridSize = 20;
     let tileCountX, tileCountY;
-    
-    // Stato Gioco
+    let safeZoneTiles = 3; // Righe da saltare in alto (per l'HUD)
+
+    // Game Vars
     let px, py;
-    let xv = 0, yv = 0;
+    let xv=0, yv=0;
     let trail = [];
     let tail = 5;
     let score = 0;
-    let ax, ay; // Apple position
-    let highScore = localStorage.getItem('snake_fs_highscore') || 0;
-    let gameRunning = false;
+    let ax, ay;
     
-    // Swipe Logic Variables
-    let touchStartX = 0;
-    let touchStartY = 0;
+    let isPaused = true;
+    let gameInterval;
+    let lastInput = 0; // Debounce per evitare inversioni 180° istantanee
 
-    bestEl.innerText = highScore;
-
-    // Init Engine
+    // --- INITIALIZATION ---
     window.onload = () => {
         resize();
         window.addEventListener('resize', resize);
-        document.addEventListener('keydown', handleKey); // Fallback PC
+        document.addEventListener('keydown', handleKey);
         
-        // Touch Listeners
-        document.addEventListener('touchstart', handleTouchStart, {passive: false});
-        document.addEventListener('touchmove', handleTouchMove, {passive: false}); // Blocca scroll
-        document.addEventListener('touchend', handleTouchEnd, {passive: false});
+        // Load Leaderboard (or init Easter Egg)
+        checkLeaderboardInit();
+        renderLeaderboard();
         
-        setInterval(game, 1000/12); // 12 FPS
+        // Start in Pause Mode
+        showMenu("READY?");
     };
 
     function resize() {
-        // Adatta il canvas allo schermo reale
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        
-        // Calcola quante celle stanno nello schermo
         tileCountX = Math.floor(canvas.width / gridSize);
         tileCountY = Math.floor(canvas.height / gridSize);
         
-        // Reset posizioni se fuori schermo
-        if(!gameRunning) reset();
+        // Calcola safe zone in base all'altezza HUD (50px)
+        safeZoneTiles = Math.ceil(55 / gridSize); 
     }
 
-    function game() {
-        if(!gameRunning) return;
+    function startNewGame() {
+        score = 0;
+        tail = 5;
+        trail = [];
+        xv = 0; yv = 0;
+        
+        // Centro
+        px = Math.floor(tileCountX / 2);
+        py = Math.floor(tileCountY / 2);
+        
+        spawnApple();
+        updateScore(0);
+        
+        // Avvia
+        isPaused = false;
+        menu.classList.add("hidden");
+        if(gameInterval) clearInterval(gameInterval);
+        gameInterval = setInterval(gameLoop, 1000/12); // 12 FPS
+    }
+
+    function togglePause() {
+        isPaused = !isPaused;
+        if(isPaused) {
+            showMenu("PAUSED");
+        } else {
+            menu.classList.remove("hidden"); // Hack per refresh grafico
+            setTimeout(()=> menu.classList.add("hidden"), 10);
+        }
+    }
+
+    function showMenu(title) {
+        document.getElementById("menu-title").innerText = title;
+        menu.classList.remove("hidden");
+        // Se è game over, nascondi resume
+        if(title === "GAME OVER") resumeBtn.style.display = "none";
+        else resumeBtn.style.display = "block";
+        
+        renderLeaderboard();
+    }
+
+    // --- GAME LOOP ---
+    function gameLoop() {
+        if(isPaused) return;
 
         px += xv;
         py += yv;
 
-        // Logica muri passanti (Wrap) su griglia dinamica
+        // Wrap Logic
         if(px < 0) px = tileCountX-1;
         if(px > tileCountX-1) px = 0;
         if(py < 0) py = tileCountY-1;
         if(py > tileCountY-1) py = 0;
 
-        // Background pulito
-        ctx.fillStyle = "#879c85"; 
+        // Draw Background
+        ctx.fillStyle = "#879c85";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Disegna Serpente
+        // Draw Snake
         ctx.fillStyle = "#000";
+        let collision = false;
         for(let i=0; i<trail.length; i++) {
             ctx.fillRect(trail[i].x * gridSize, trail[i].y * gridSize, gridSize-2, gridSize-2);
             
-            // Collisione coda
-            if(trail[i].x === px && trail[i].y === py) {
-                if(tail > 5) gameOver();
+            // Self Hit Check (solo se ci muoviamo)
+            if((xv!==0 || yv!==0) && trail[i].x === px && trail[i].y === py) {
+                collision = true;
             }
+        }
+
+        if(collision) {
+            handleGameOver();
+            return;
         }
 
         trail.push({x: px, y: py});
@@ -142,100 +300,52 @@
             trail.shift();
         }
 
-        // Collisione Mela
+        // Eat Apple
         if(ax === px && ay === py) {
             tail++;
             score++;
-            scoreEl.innerText = score;
+            updateScore(score);
             spawnApple();
         }
 
-        // Disegna Mela
+        // Draw Apple
         ctx.fillStyle = "#000"; 
         ctx.fillRect(ax*gridSize, ay*gridSize, gridSize-2, gridSize-2);
     }
 
     function spawnApple() {
-        ax = Math.floor(Math.random() * tileCountX);
-        ay = Math.floor(Math.random() * tileCountY);
-    }
-
-    function gameOver() {
-        if (score > highScore) {
-            highScore = score;
-            localStorage.setItem('snake_fs_highscore', highScore);
-            bestEl.innerText = highScore;
-        }
-        reset();
-    }
-
-    function reset() {
-        tail = 5;
-        score = 0;
-        scoreEl.innerText = 0;
-        trail = [];
-        // Start center
-        px = Math.floor(tileCountX / 2);
-        py = Math.floor(tileCountY / 2);
-        xv = 0; yv = 0;
-        gameRunning = false;
-        hintEl.style.display = "block";
-        spawnApple();
-        
-        // Disegna frame statico di reset
-        ctx.fillStyle = "#879c85"; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#000"; 
-        ctx.fillRect(ax*gridSize, ay*gridSize, gridSize-2, gridSize-2);
-        ctx.fillRect(px*gridSize, py*gridSize, gridSize-2, gridSize-2);
-    }
-
-    // --- INPUT LOGIC (SWIPE) ---
-
-    function handleTouchStart(evt) {
-        touchStartX = evt.changedTouches[0].screenX;
-        touchStartY = evt.changedTouches[0].screenY;
-    }
-
-    function handleTouchMove(evt) {
-        // Impedisce il refresh della pagina o lo scroll mentre giochi
-        evt.preventDefault();
-    }
-
-    function handleTouchEnd(evt) {
-        if(!gameRunning) {
-            gameRunning = true;
-            hintEl.style.display = "none";
-        }
-
-        let touchEndX = evt.changedTouches[0].screenX;
-        let touchEndY = evt.changedTouches[0].screenY;
-        
-        handleGesture(touchStartX, touchStartY, touchEndX, touchEndY);
-    }
-
-    function handleGesture(sx, sy, ex, ey) {
-        let xDiff = ex - sx;
-        let yDiff = ey - sy;
-
-        // Rileva swipe solo se il movimento è significativo (>10px)
-        if (Math.abs(xDiff) > Math.abs(yDiff)) {
-            // Movimento Orizzontale
-            if (Math.abs(xDiff) > 10) {
-                if (xDiff > 0) changeDir(1, 0); // Destra
-                else changeDir(-1, 0); // Sinistra
-            }
-        } else {
-            // Movimento Verticale
-            if (Math.abs(yDiff) > 10) {
-                if (yDiff > 0) changeDir(0, 1); // Giù
-                else changeDir(0, -1); // Su
+        // SAFE ZONE LOGIC: Mela mai sopra HUD
+        let valid = false;
+        while(!valid) {
+            ax = Math.floor(Math.random() * tileCountX);
+            ay = Math.floor(Math.random() * tileCountY);
+            
+            // Check Y (Deve essere sotto la safe zone)
+            if(ay >= safeZoneTiles) {
+                // Check non spawnare sul serpente
+                let onSnake = false;
+                for(let t of trail) {
+                    if(t.x === ax && t.y === ay) onSnake = true;
+                }
+                if(!onSnake) valid = true;
             }
         }
     }
 
-    function changeDir(x, y) {
-        // Anti-suicidio (non puoi tornare indietro di colpo)
+    function updateScore(s) {
+        scoreDisplay.innerText = s;
+    }
+
+    // --- INPUT HANDLING (D-PAD) ---
+    function input(x, y) {
+        // Previene input durante pausa
+        if(isPaused) return;
+
+        // Anti-Reverse e Anti-Spam (Debounce leggero)
+        let now = Date.now();
+        if(now - lastInput < 50) return; // 50ms limit
+        lastInput = now;
+
         if (x === -xv && x !== 0) return;
         if (y === -yv && y !== 0) return;
         xv = x;
@@ -243,14 +353,72 @@
     }
 
     function handleKey(evt) {
-        if(!gameRunning) { gameRunning = true; hintEl.style.display = "none"; }
+        if(isPaused && evt.keyCode !== 80) return; // Solo P sblocca
         switch(evt.keyCode) {
-            case 37: changeDir(-1, 0); break;
-            case 38: changeDir(0, -1); break;
-            case 39: changeDir(1, 0); break;
-            case 40: changeDir(0, 1); break;
+            case 37: input(-1, 0); break;
+            case 38: input(0, -1); break;
+            case 39: input(1, 0); break;
+            case 40: input(0, 1); break;
+            case 80: togglePause(); break; // P for Pause
         }
     }
+
+    // --- LEADERBOARD SYSTEM ---
+    const LB_KEY = 'snake_pro_lb';
+
+    function checkLeaderboardInit() {
+        if(!localStorage.getItem(LB_KEY)) {
+            // EASTER EGG INJECTION
+            const defaults = [
+                { name: 'aaaaaaaAaaa', score: 999999 },
+                { name: 'SNAKE_DEV', score: 50 },
+                { name: 'RETRO_FAN', score: 30 },
+                { name: 'NOKIA_3310', score: 10 },
+                { name: 'NOOB', score: 1 }
+            ];
+            localStorage.setItem(LB_KEY, JSON.stringify(defaults));
+        }
+    }
+
+    function handleGameOver() {
+        isPaused = true;
+        let lb = JSON.parse(localStorage.getItem(LB_KEY));
+        
+        // Controlla se è record (entra in top 5)
+        let qualified = false;
+        if(score > lb[lb.length-1].score) qualified = true;
+
+        if(qualified) {
+            let name = prompt("NEW RECORD! Enter Name (Max 10 chars):", "PLAYER");
+            if(name === null || name === "") name = "UNKNOWN";
+            name = name.substring(0, 10).toUpperCase();
+
+            lb.push({name: name, score: score});
+            // Ordina Descrescente
+            lb.sort((a, b) => b.score - a.score);
+            // Tieni solo Top 5
+            lb = lb.slice(0, 5);
+            localStorage.setItem(LB_KEY, JSON.stringify(lb));
+        }
+
+        showMenu("GAME OVER");
+    }
+
+    function renderLeaderboard() {
+        let lb = JSON.parse(localStorage.getItem(LB_KEY));
+        let html = "";
+        lb.forEach((entry, i) => {
+            let isEasterEgg = (entry.name === 'aaaaaaaAaaa' && entry.score === 999999);
+            let styleClass = isEasterEgg ? "lb-row easter-egg" : "lb-row";
+            html += `
+                <div class="${styleClass}">
+                    <span class="lb-name">${i+1}. ${entry.name}</span>
+                    <span class="lb-score">${entry.score}</span>
+                </div>`;
+        });
+        lbList.innerHTML = html;
+    }
+
 </script>
 </body>
 </html>
