@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Snake 3310 Final</title>
+    <title>Snake 3310 Max</title>
     <style>
         /* --- LAYOUT GENERALE --- */
         body {
-            background: #222; 
+            background: #151515; /* Nero quasi assoluto per contrasto */
             margin: 0;
             overflow: hidden;
             position: fixed;
@@ -57,38 +57,43 @@
         /* --- MASCHERA TELEFONO (FUSTELLA) --- */
         #phone-mask {
             position: relative;
-            width: 95vw; 
-            max-width: 450px; 
-            aspect-ratio: 9 / 18.5; 
+            width: 98vw; /* Quasi tutto lo schermo in larghezza */
+            max-width: 460px; 
+            aspect-ratio: 9 / 18; 
             
-            border-radius: 50px; 
+            border-radius: 55px; /* Curvatura estrema */
             overflow: hidden; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            box-shadow: 0 10px 60px rgba(0,0,0,0.9);
         }
 
-        /* --- SFONDO TELEFONO --- */
+        /* --- SFONDO TELEFONO (ZOOM AGGRESSIVO) --- */
         #phone-bg {
             width: 100%;
             height: 100%;
             background-image: url('nokia_frame.JPG'); 
             background-position: center;
             background-repeat: no-repeat;
-            background-size: 112%; /* Zoom per tagliare bordi */
+            
+            /* ZOOM AL 128%: Questo spinge via la scacchiera dagli angoli */
+            background-size: 128%; 
         }
 
-        /* --- SCHERMO DI GIOCO (CALIBRATO SULLE LINEE ROSSE) --- */
+        /* --- SCHERMO DI GIOCO (MAXIMIZED) --- */
         #screen-container {
             position: absolute;
             
-            /* NUOVE COORDINATE ESPANSE */
-            top: 29%;      /* Abbassato per partire sotto la scritta NOKIA */
-            left: 17%;     /* Allargato a sinistra */
-            width: 66%;    /* Molto più largo per toccare i bordi */
-            height: 27%;   /* Più alto per arrivare fino ai tasti */
+            /* COORDINATE PER RIEMPIRE L'AREA VERDE */
+            top: 25.5%;      /* Più in alto, vicino alla scritta NOKIA */
+            left: 14%;       /* Molto più largo a sinistra */
+            width: 72%;      /* Occupa quasi tutta la larghezza */
+            height: 30%;     /* Scende fino in fondo */
             
             background-color: #879c85; 
+            
+            /* Curvatura aumentata per seguire la plastica */
+            border-radius: 20px 20px 30px 30px; 
+            
             z-index: 10;
-            /* opacity: 0.5; /* Scommenta questa riga se vuoi vedere cosa c'è sotto per debug */
         }
 
         canvas {
