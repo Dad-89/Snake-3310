@@ -1,36 +1,33 @@
-# Snake-3310
-Nokia 3310 Snake Clone. Single-file HTML5 game. Zero dependencies. Mobile-first logic with LocalStorage persistence.
+# 🐍 Snake 3310: Legend Edition
 
+> "Un piccolo progetto di mezza giornata per ricordare i tempi in cui la batteria durava una settimana e, se ti cadeva il telefono, ti preoccupavi per le piastrelle del pavimento."
 
-
-# 🐍 Nokia Snake (HTML5 Port)
-
-A lightweight, zero-dependency clone of the classic Nokia 3310 Snake game, written in a single HTML file. Designed for mobile browsers with touch controls and persistent high scores.
-
-## ⚡ Features
-
-* **Monolithic Architecture**: Entire game (Logic, UI, CSS) contained in one `index.html` file (~4KB).
-* **Mobile First**: Custom Virtual D-Pad using `ontouchstart` for zero-latency input.
-* **Persistent Data**: Uses `localStorage` to save High Scores locally on the device.
-* **Retro Aesthetics**: CSS-only styling mimicking the Nokia 3310 LCD palette (#c7f0d8).
-* **Responsive**: Viewport hacks to prevent zooming and scrolling during gameplay.
-
-## 🕹️ Live Demo
-
-Play it here: https://dad-89.github.io/Snake-3310/
-
-
-## 🛠️ Tech Stack
-
-* **Core**: Vanilla JavaScript (ES6)
-* **Rendering**: HTML5 `<canvas>`
-* **Input**: Touch Events (Mobile) + Keyboard (Desktop fallback)
-* **Storage**: Browser LocalStorage API
-
-## 🚀 Deployment
-
-This project is deployed via **GitHub Pages**.
-No build steps required. Just push `index.html` to the `main` branch.
+### 🕹️ [CLICCA QUI PER GIOCARE SUBITO](https://Dad-89.github.io/Snake-3310/)
+*(Funziona su smartphone, tablet e persino su PC, se proprio insisti)*
 
 ---
-*Project created for educational purposes. Minimalist coding challenge.*
+
+## ⚡ Cos'è?
+
+È Snake. Quello vero.
+Nato dalla noia e dalla pura nostalgia, questo è un tributo all'epoca d'oro della telefonia mobile. Quell'epoca in cui i telefoni erano mattoni indistruttibili e non gioielli di vetro che si crepano solo a guardarli male.
+
+Niente account, niente pubblicità, niente "acquista gemme". Solo tu, un serpente pixelato e la tensione di non schiantarti contro la tua stessa coda.
+
+## 🛠️ Caratteristiche "Next-Gen"
+
+* **Fustellatura Digitale™**: Il gioco gira dentro una maschera CSS che simula lo schermo del 3310. È probabilmente la cosa più solida che vedrai oggi sul tuo smartphone moderno super-fragile.
+* **Fisica Quantistica (Wrap)**: I muri non uccidono. Passi da una parte all'altra come in un portale dimensionale. Einstein sarebbe confuso, ma noi ci divertiamo così.
+* **Touch Screen**: Swipe ovunque. Perché, ammettiamolo, i nostri pollici moderni si sono ammorbiditi e non reggerebbero più quei tasti di gomma dura.
+* **Local Storage**: I record vengono salvati nel browser. La gloria è eterna (o almeno finché non cancelli la cronologia).
+* **Bug**: Probabilmente ce ne sono. Considerateli "features vintage" per l'autenticità.
+
+## 🕹️ Come Giocare
+
+1.  Apri il link qui sopra.
+2.  Clicca **NEW GAME**.
+3.  Usa il dito (swipe) per dirigere il serpente.
+4.  Non mangiare la tua coda. È l'unica regola che conta dal 1997.
+
+---
+*Progetto realizzato per puro divertimento, tra un ricordo e l'altro.*
