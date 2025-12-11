@@ -77,25 +77,26 @@
         }
 
         /* --- SCHERMO DI GIOCO (CALIBRAZIONE DEFINITIVA) --- */
-        #screen-container {
-            position: absolute;
-            
-            /* COORDINATE PERFETTE PER RIEMPIRE L'AREA VERDE */
-            top: 23.5%;     /* Subito sotto la scritta NOKIA */
-            left: 13.5%;    /* Centrato orizzontalmente */
-            width: 74%;     /* Larghezza massima */
-            height: 32%;    /* Altezza fino alla curva dei tasti */
-            
-            background-color: transparent; 
-            
-            /* LA FORMA DELLO SCHERMO 3310 (Scudo) */
-            /* Angoli sopra: 10px (poco curvi) */
-            /* Angoli sotto: 50px (molto curvi per seguire la plastica) */
-            border-radius: 10px 10px 50px 50px; 
-            
-            overflow: hidden;
-            z-index: 10;
-        }
+  #screen-container {
+    position: absolute;
+    /* Sposta l'inizio dello schermo più in basso, sotto la scritta NOKIA */
+    top: 28%;
+    /* Allunga lo schermo verso il basso, fino a prima dei tasti */
+    height: 34%;
+    /* Mantiene la posizione orizzontale */
+    left: 13%;
+    /* Mantiene la larghezza */
+    width: 73%;
+    /* Rende lo sfondo trasparente */
+    background-color: transparent;
+    /* Rimuove l'ombra */
+    box-shadow: none;
+    /* Arrotonda leggermente gli angoli per seguire la forma dello schermo */
+    border-radius: 15px;
+    /* Assicura che il serpente non esca dai bordi del contenitore */
+    overflow: hidden;
+    z-index: 10;
+}
 
         canvas {
             display: block; width: 100%; height: 100%;
