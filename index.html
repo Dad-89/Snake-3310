@@ -7,7 +7,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#151515">
-    <link rel="manifest" href="manifest.json"> <link rel="apple-touch-icon" href="icon.png"> <title>Snake 3310 Ultimate</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    
+    <title>Snake 3310 Ultimate</title>
     <style>
         /* --- LAYOUT GENERALE --- */
         body {
@@ -49,11 +52,14 @@
             background-image: url('nokia_frame.JPG'); background-position: center;
             background-repeat: no-repeat; background-size: 128%;
         }
+
+        /* --- CODICE UTENTE BLOCCATO --- */
         #screen-container {
             position: absolute; top: 23.5%; left: 13.5%; width: 74%; height: 32%;
             background-color: transparent; border-radius: 10px 10px 50px 50px;
             overflow: hidden; z-index: 10;
         }
+
         canvas {
             display: block; width: 100%; height: 100%;
             image-rendering: pixelated; mix-blend-mode: multiply; opacity: 0.85;
@@ -125,36 +131,38 @@
     </div>
 
 <script>
-    // --- SETUP PWA (Service Worker) ---
+    // --- SETUP PWA ---
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(console.error);
     }
 
-    // --- AUDIO ENGINE (Sintetizzatore) ---
+    // --- AUDIO ENGINE POTENZIATO ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
     function playSound(type) {
+        // Tentativo di risveglio se sospeso
         if (audioCtx.state === 'suspended') audioCtx.resume();
+        
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
         if (type === 'eat') {
-            // Suono "Bip" alto (stile moneta)
+            // Suono Bip (Volume alzato a 0.3)
             osc.type = 'square';
             osc.frequency.setValueAtTime(600, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime); 
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
             osc.start();
             osc.stop(audioCtx.currentTime + 0.1);
         } else if (type === 'die') {
-            // Suono "Bop" basso (stile errore)
+            // Suono Bop (Volume alzato a 0.5)
             osc.type = 'sawtooth';
             osc.frequency.setValueAtTime(150, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
             osc.start();
             osc.stop(audioCtx.currentTime + 0.3);
@@ -167,7 +175,7 @@
     const screenCont = document.getElementById("screen-container");
     
     const GRID = 10; 
-    let baseFPS = 15; // Velocità base
+    let baseFPS = 15; 
     let currentFPS = baseFPS;
     
     let tX, tY, px, py, trail=[], tail=5, score=0;
@@ -181,16 +189,26 @@
         surf.addEventListener('touchmove', handleMove, {passive:false});
         document.addEventListener('keydown', handleKey);
         
-        document.getElementById("pause-btn").onclick = openMenuPause;
-        document.getElementById("btn-resume").onclick = resumeGame;
-        document.getElementById("btn-new").onclick = startNew;
+        // ASSEGNAZIONE TASTI + SBLOCCO AUDIO
+        document.getElementById("pause-btn").onclick = () => {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            openMenuPause();
+        };
+        document.getElementById("btn-resume").onclick = () => {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            resumeGame();
+        };
+        document.getElementById("btn-new").onclick = () => {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            startNew();
+        };
+
         document.getElementById("btn-best").onclick = showLb;
         document.getElementById("btn-about").onclick = showAb;
         document.getElementById("btn-back-lb").onclick = openMain;
         document.getElementById("btn-back-ab").onclick = openMain;
 
         initLb();
-        // Sfondo statico iniziale
         ctx.fillStyle="#879c85"; ctx.fillRect(0,0,canvas.width,canvas.height);
         openMain();
     }
@@ -207,7 +225,7 @@
         px = Math.floor(tX/2); py = Math.floor(tY/2);
         xv=1; yv=0; nextX=1; nextY=0; 
         
-        currentFPS = baseFPS; // Reset velocità
+        currentFPS = baseFPS; 
         spawnApple();
         
         isRunning=true; isPaused=false;
@@ -220,13 +238,11 @@
         xv=nextX; yv=nextY; hasMoved=false;
         px+=xv; py+=yv;
         
-        // Wrap
         if(px<0) px=tX-1; if(px>tX-1) px=0; if(py<0) py=tY-1; if(py>tY-1) py=0;
 
-        ctx.clearRect(0,0,canvas.width,canvas.height); // Usa clearRect per trasparenza
-        ctx.fillStyle="#879c85"; ctx.fillRect(0,0,canvas.width,canvas.height); // Riempi sfondo verde
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle="#879c85"; ctx.fillRect(0,0,canvas.width,canvas.height);
 
-        // Snake
         ctx.fillStyle="#1a2e1a";
         for(let i=0; i<trail.length; i++) {
             ctx.fillRect(trail[i].x*GRID, trail[i].y*GRID, GRID-0.5, GRID-0.5);
@@ -234,14 +250,13 @@
         }
         trail.push({x:px, y:py}); while(trail.length>tail) trail.shift();
 
-        // Apple
         if(ax===px && ay===py) {
             tail++; score++; 
             document.getElementById("score").innerText=score;
             if(navigator.vibrate) navigator.vibrate(20);
             playSound('eat'); // SUONO!
             
-            // VELOCITÀ PROGRESSIVA: Ogni 5 mele aumenta di 1 FPS
+            // Aumento velocità
             if(score % 5 === 0) {
                 currentFPS++;
                 clearInterval(loopId);
@@ -263,14 +278,13 @@
 
     function gameOver() {
         if(navigator.vibrate) navigator.vibrate(400);
-        playSound('die'); // SUONO MORTE
+        playSound('die'); // SUONO!
         isRunning=false; saveScore(score);
         document.getElementById("menu-title").innerText = "GAME OVER";
         document.getElementById("btn-resume").style.display = "none";
         document.getElementById("menu-main").classList.remove("hidden");
     }
 
-    // Input Handling (uguale a prima)
     let tStartX;
     function handleStart(e) { e.preventDefault(); tStartX=e.touches[0].clientX; tStartY=e.touches[0].clientY; }
     function handleMove(e) {
@@ -295,7 +309,6 @@
         nextX=x; nextY=y; hasMoved=true;
     }
 
-    // Menus
     function openMenuPause() {
         if(!isRunning && document.getElementById("menu-title").innerText==="GAME OVER") {
              document.getElementById("menu-main").classList.remove("hidden"); return;
@@ -311,7 +324,6 @@
     function showLb() { closeMenus(); renderLb(); document.getElementById("menu-lb").classList.remove("hidden"); }
     function showAb() { closeMenus(); document.getElementById("menu-about").classList.remove("hidden"); }
 
-    // Storage
     const LB_KEY='snake_legend_lb';
     function initLb() {
         if(!localStorage.getItem(LB_KEY)) localStorage.setItem(LB_KEY, JSON.stringify([
