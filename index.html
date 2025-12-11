@@ -17,30 +17,27 @@
             font-family: 'Courier New', monospace;
         }
 
-        /* Il contenitore principale che è l'immagine del telefono */
         #phone-container {
             position: relative;
             width: auto;
-            height: 95vh; /* Occupa quasi tutta l'altezza */
-            aspect-ratio: 405 / 833; /* Proporzioni standard 3310 */
-            background-image: url('IMG_0746.png'); /* FILE NAME AGGIORNATO */
-            background-size: contain; /* Adatta l'immagine senza tagliarla */
+            height: 95vh;
+            aspect-ratio: 405 / 833;
+            background-image: url('IMG_0746.png'); /* Nome immagine confermato */
+            background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            /* Rimosso shadow/border radius per adattarsi alla tua png trasparente se lo è */
         }
 
-        /* Posizionamento chirurgico dello schermo di gioco sull'immagine */
-        /* Nota: Se l'immagine ha bordi bianchi, potresti dover aggiustare questi % */
+        /* Schermo LCD */
         #game-screen-wrapper {
             position: absolute;
-            top: 24%; /* Aggiustato leggermente */
-            left: 17%; /* Aggiustato leggermente */
+            top: 24%;
+            left: 17%;
             width: 65%;
             height: 23%;
-            background-color: #879c85; /* Colore LCD */
+            background-color: #879c85;
             overflow: hidden;
-            z-index: 1; /* Assicura che stia sopra l'immagine di sfondo */
+            z-index: 1;
         }
 
         canvas {
@@ -50,7 +47,6 @@
             image-rendering: pixelated;
         }
 
-        /* --- UI DELLO SCHERMO (Punteggi) --- */
         #in-game-ui {
             position: absolute;
             top: 2px;
@@ -63,34 +59,45 @@
             pointer-events: none;
         }
 
-        /* --- TASTI FANTASMA (Invisibili) --- */
-        .ghost-key {
-            position: absolute;
-            /* background: rgba(255, 0, 0, 0.3); <-- DECOMMENTA SE VUOI VEDERE I TASTI PER CALIBRARLI */
-            opacity: 0; 
-            touch-action: manipulation;
-            z-index: 10; /* Sopra a tutto */
-        }
-        
-        /* Mappatura approssimativa sui tasti dell'immagine */
-        #key-2-up { top: 58%; left: 38%; width: 24%; height: 7%; }
-        #key-8-down { top: 72%; left: 38%; width: 24%; height: 7%; }
-        #key-4-left { top: 65%; left: 13%; width: 24%; height: 7%; }
-        #key-6-right { top: 65%; left: 63%; width: 24%; height: 7%; }
-        
-        /* Tasto P (Pausa) sul tasto fisico '1' */
-        #key-1-pause { top: 58%; left: 13%; width: 24%; height: 7%; }
-
-        /* Feedback visivo touch */
-        .ghost-key:active { background: rgba(255, 255, 255, 0.2); opacity: 1; }
-
         #game-over-message {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             font-size: 14px; font-weight: bold;
             text-align: center; display: none;
+            width: 100%;
         }
+
+        /* --- TASTI FANTASMA (Mappatura Fisica 3310) --- */
+        .ghost-key {
+            position: absolute;
+            /* background: rgba(255, 0, 0, 0.4); /* <--- Togli commento per DEBUG visivo tasti */
+            z-index: 10;
+            touch-action: manipulation;
+            border-radius: 50%;
+        }
+        
+        /* Feedback visivo al tocco */
+        .ghost-key:active { background: rgba(255, 255, 255, 0.3); }
+
+        /* MAPPATURA PRECISA */
+        /* Tasto C / Cornetta (Sinistra sopra i numeri) */
+        #key-pause { top: 48%; left: 20%; width: 20%; height: 6%; border-radius: 10px; transform: rotate(-15deg); }
+
+        /* Tasto 2 (SU) */
+        #key-2-up { top: 56.5%; left: 38%; width: 24%; height: 6.5%; }
+
+        /* Tasto 4 (SINISTRA) */
+        #key-4-left { top: 64%; left: 14%; width: 24%; height: 6.5%; }
+
+        /* Tasto 5 (Enter/Ok - Opzionale) */
+        #key-5-ok { top: 64%; left: 38%; width: 24%; height: 6.5%; }
+
+        /* Tasto 6 (DESTRA) */
+        #key-6-right { top: 64%; left: 62%; width: 24%; height: 6.5%; }
+
+        /* Tasto 8 (GIU) */
+        #key-8-down { top: 71.5%; left: 38%; width: 24%; height: 6.5%; }
 
     </style>
 </head>
@@ -106,11 +113,10 @@
         <canvas id="gc"></canvas>
     </div>
 
-    <div id="key-2-up" class="ghost-key" ontouchstart="input(0, -1)"></div>
-    <div id="key-8-down" class="ghost-key" ontouchstart="input(0, 1)"></div>
+    <div id="key-pause" class="ghost-key" ontouchstart="togglePause()"></div> <div id="key-2-up" class="ghost-key" ontouchstart="input(0, -1)"></div>
     <div id="key-4-left" class="ghost-key" ontouchstart="input(-1, 0)"></div>
     <div id="key-6-right" class="ghost-key" ontouchstart="input(1, 0)"></div>
-    <div id="key-1-pause" class="ghost-key" ontouchstart="togglePause()"></div>
+    <div id="key-8-down" class="ghost-key" ontouchstart="input(0, 1)"></div>
 </div>
 
 <script>
@@ -120,12 +126,11 @@
     const bestValEl = document.getElementById("best-val");
     const gameOverMsg = document.getElementById("game-over-message");
 
-    // Configurazione Griglia
+    // Grid System
     const gridSize = 10; 
     const tileCountX = 28; 
     const tileCountY = 18;
 
-    // Stato
     let px = 14, py = 9;
     let xv = 0, yv = 0;
     let trail = [];
@@ -141,7 +146,6 @@
     bestValEl.innerText = highScore;
 
     function init() {
-        // Forza dimensioni interne del canvas per nitidezza pixel
         canvas.width = tileCountX * gridSize;
         canvas.height = tileCountY * gridSize;
         document.addEventListener('keydown', handleKey);
@@ -166,17 +170,22 @@
         px += xv;
         py += yv;
 
-        if(px < 0 || px >= tileCountX || py < 0 || py >= tileCountY) {
-            handleGameOver();
-            return;
-        }
+        // --- LOGICA WRAP (Passaggio Muri) ---
+        if(px < 0) px = tileCountX - 1;
+        if(px > tileCountX - 1) px = 0;
+        if(py < 0) py = tileCountY - 1;
+        if(py > tileCountY - 1) py = 0;
 
+        // Draw Background
         ctx.fillStyle = "#879c85";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // Draw Snake
         ctx.fillStyle = "#2b3f29"; 
         for(let i=0; i<trail.length; i++) {
             ctx.fillRect(trail[i].x*gridSize+1, trail[i].y*gridSize+1, gridSize-2, gridSize-2);
+            
+            // Collisione Coda (Game Over solo se tocchi te stesso)
             if(trail[i].x === px && trail[i].y === py && tail > 5) {
                 handleGameOver(); return;
             }
@@ -185,6 +194,7 @@
         trail.push({x: px, y: py});
         while(trail.length > tail) trail.shift();
 
+        // Mela Logic
         if(ax === px && ay === py) {
             tail++; score++;
             scoreValEl.innerText = score;
@@ -197,12 +207,13 @@
     function handleGameOver() {
         isGameOver = true;
         gameOverMsg.style.display = "block";
+        gameOverMsg.innerHTML = "GAME OVER<br><span style='font-size:10px'>Press Cornetta/Pause</span>";
+        
         if(score > highScore) {
             highScore = score;
             localStorage.setItem('snake3310_real_best', highScore);
             bestValEl.innerText = highScore;
         }
-        setTimeout(startGame, 2000);
     }
 
     function spawnApple() {
@@ -211,8 +222,13 @@
     }
 
     function togglePause() {
-        if(isGameOver) return;
-        isPaused = !isPaused;
+        if(isGameOver) {
+            startGame(); // Se game over, il tasto riavvia
+        } else {
+            isPaused = !isPaused;
+            gameOverMsg.style.display = isPaused ? "block" : "none";
+            gameOverMsg.innerText = isPaused ? "PAUSE" : "";
+        }
     }
 
     function input(x, y) {
@@ -233,7 +249,7 @@
             case 'ArrowDown': case '8': input(0, 1); break;
             case 'ArrowLeft': case '4': input(-1, 0); break;
             case 'ArrowRight': case '6': input(1, 0); break;
-            case 'p': case '1': togglePause(); break;
+            case 'p': case 'c': case 'Backspace': togglePause(); break;
         }
     }
 
