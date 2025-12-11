@@ -5,123 +5,124 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Snake 3310 Perfect</title>
+    <title>Snake 3310 Pure</title>
     <style>
-        /* --- CORE LAYOUT --- */
+        /* --- LAYOUT DEL "TAVOLO" --- */
         body {
-            background-color: #222;
+            /* Sfondo scuro elegante (non più il colore del telefono) */
+            background: radial-gradient(circle, #2c3e50 0%, #000000 100%);
             margin: 0;
-            overflow: hidden; /* Stop scroll */
-            position: fixed; /* Stop elastic bounce on iOS */
+            overflow: hidden;
+            position: fixed;
             width: 100%;
             height: 100%;
             font-family: 'Courier New', monospace;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center; /* Centra tutto verticalmente */
             touch-action: none;
         }
 
-        /* --- TOP BAR --- */
+        /* --- TOP BAR (Flottante sopra) --- */
         #top-bar {
-            height: 50px;
-            background: #000;
-            color: #879c85;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            border-bottom: 2px solid #555;
-            z-index: 100;
-            flex-shrink: 0;
-        }
-        #score-box { font-weight: bold; font-size: 18px; }
-        #pause-btn {
-            background: #879c85; color: #000; border: none;
-            padding: 5px 15px; font-weight: bold; border-radius: 4px;
-            font-size: 14px;
-        }
-
-        /* --- STAGE DI GIOCO --- */
-        #stage {
-            flex-grow: 1;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #333;
-            width: 100%;
-        }
-
-        /* --- TELAIO NOKIA --- */
-        #phone {
-            position: relative;
-            aspect-ratio: 9 / 17; /* Ratio approssimativo telefono */
-            height: 96%; /* Occupa quasi tutta l'altezza */
-            width: auto;
-            background-image: url('nokia_frame.JPG'); /* <--- FILE IMMAGINE */
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-        }
-
-        /* --- SCHERMO LCD (ANCORA) --- */
-        #screen {
             position: absolute;
-            /* CALIBRAZIONE: Modifica questi valori se lo schermo non è allineato */
-            top: 26%;
-            left: 23%;
-            width: 54%;
+            top: 0; left: 0; width: 100%;
+            height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; box-sizing: border-box;
+            z-index: 100;
+            pointer-events: none; /* Lascia passare i click tranne sui bottoni */
+        }
+        #score-box { 
+            color: #879c85; font-weight: bold; font-size: 20px; 
+            text-shadow: 2px 2px 0 #000;
+        }
+        #pause-btn {
+            pointer-events: auto;
+            background: #879c85; color: #000; border: 2px solid #000;
+            padding: 8px 16px; font-weight: bold; border-radius: 20px;
+            font-size: 14px; cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.5);
+        }
+        #pause-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.5); }
+
+        /* --- IL CORPO DEL TELEFONO (LA FUSTELLA) --- */
+        #phone-body {
+            position: relative;
+            /* Proporzioni esatte del 3310 */
+            width: 85vw; /* Larghezza reattiva */
+            max-width: 400px; /* Non diventa mai enorme su tablet */
+            aspect-ratio: 9 / 18; /* Forma allungata tipica */
+            
+            /* --- LA MAGIA DEL RITAGLIO --- */
+            /* 1. Arrotonda gli angoli per seguire la forma del telefono */
+            border-radius: 45px; 
+            
+            /* 2. Carica l'immagine */
+            background-image: url('nokia_frame.jpg');
+            background-position: center;
+            background-repeat: no-repeat;
+            
+            /* 3. ZOOM TATTICO: Aumenta questo valore se vedi ancora i bordi a scacchi! */
+            background-size: 104%; 
+            
+            /* 4. Taglia tutto ciò che esce dai bordi arrotondati */
+            overflow: hidden;
+
+            /* 5. Ombra esterna per staccarlo dallo sfondo (effetto 3D) */
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.8), /* Ombra profonda */
+                inset 0 0 0 2px rgba(0,0,0,0.5); /* Bordo interno sottile */
+        }
+
+        /* --- LO SCHERMO DI GIOCO --- */
+        #screen-container {
+            position: absolute;
+            /* Coordinate precise per centrare nel "buco" dell'immagine */
+            top: 26%; 
+            left: 23%; 
+            width: 54%; 
             height: 23%;
             
             background-color: #879c85;
-            border-radius: 3px;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+            border-radius: 6px;
+            box-shadow: inset 3px 3px 10px rgba(0,0,0,0.2); /* Ombra interna LCD */
             overflow: hidden;
         }
-        
-        /* Classe per il bordo rosso di calibrazione (si toglie da sola) */
-        .debug-border { border: 2px solid red; box-sizing: border-box; }
 
         canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
+            display: block; width: 100%; height: 100%;
             image-rendering: pixelated;
-            opacity: 0.9;
         }
 
-        /* --- TOUCH LAYER INVISIBILE --- */
-        #touch-zone {
-            position: absolute;
-            top: 50px; left: 0; bottom: 0; right: 0;
-            z-index: 50;
-        }
-
-        /* --- MENUS --- */
-        .overlay {
+        /* --- CONTROLLI INVISIBILI --- */
+        #touch-surface {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92);
-            z-index: 200;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            color: #879c85;
+            z-index: 50;
+            /* background: rgba(255,0,0,0.2); /* Debug: vedi dove puoi toccare */
+        }
+
+        /* --- MENU OVERLAYS (UI) --- */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 500;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #879c85; font-family: 'Courier New', monospace;
         }
         .hidden { display: none !important; }
-        
-        h1 { font-size: 32px; letter-spacing: 4px; margin-bottom: 30px; }
-        
-        .btn {
-            width: 200px; padding: 15px; margin: 10px;
-            background: transparent; border: 2px solid #879c85;
-            color: #879c85; font-weight: bold; font-size: 18px;
-            font-family: inherit;
+        h1 { font-size: 36px; letter-spacing: 2px; margin-bottom: 40px; text-transform: uppercase; }
+        .menu-btn {
+            width: 240px; padding: 18px; margin: 12px;
+            background: transparent; border: 3px solid #879c85;
+            color: #879c85; font-weight: bold; font-size: 20px;
+            text-transform: uppercase; font-family: inherit; cursor: pointer;
         }
-        .btn:active { background: #879c85; color: #000; }
-
-        /* Easter Egg Style */
-        .gold-score { color: #ffeb3b; text-shadow: 0 0 5px orange; }
-        .lb-row { width: 250px; display: flex; justify-content: space-between; border-bottom: 1px dashed #444; margin-bottom: 8px; font-size: 16px; }
+        .menu-btn:active { background: #879c85; color: #000; }
+        
+        .gold { color: #ffd700; text-shadow: 0 0 10px #ff8c00; }
+        .lb-row { width: 280px; display: flex; justify-content: space-between; border-bottom: 1px dashed #555; padding: 10px 0; font-size: 18px; }
 
     </style>
 </head>
@@ -132,353 +133,221 @@
         <button id="pause-btn">PAUSE</button>
     </div>
 
-    <div id="stage">
-        <div id="phone">
-            <div id="screen" class="debug-border">
-                <canvas id="gc"></canvas>
-            </div>
+    <div id="phone-body">
+        <div id="screen-container">
+            <canvas id="gc"></canvas>
         </div>
     </div>
 
-    <div id="touch-zone"></div>
+    <div id="touch-surface"></div>
 
     <div id="menu-main" class="overlay hidden">
         <h1 id="menu-title">PAUSED</h1>
-        <button class="btn" id="btn-resume">RESUME</button>
-        <button class="btn" id="btn-new">NEW GAME</button>
-        <button class="btn" id="btn-best">BEST SCORE</button>
-        <button class="btn" id="btn-about">ABOUT</button>
+        <button class="menu-btn" id="btn-resume">RESUME</button>
+        <button class="menu-btn" id="btn-new">NEW GAME</button>
+        <button class="menu-btn" id="btn-best">BEST SCORE</button>
+        <button class="menu-btn" id="btn-about">ABOUT</button>
     </div>
 
     <div id="menu-lb" class="overlay hidden">
         <h1>TOP 5</h1>
         <div id="lb-list"></div>
-        <button class="btn" id="btn-back-lb">BACK</button>
+        <button class="menu-btn" id="btn-back-lb">BACK</button>
     </div>
 
     <div id="menu-about" class="overlay hidden">
         <h1>ABOUT</h1>
-        <div style="text-align:center; line-height:1.5; font-size:18px;">
-            I LOVE<br>NOKIA 3310<br><br>
-            <a href="https://github.com/Dad-89" style="font-size:50px; color:red; text-decoration:none;">&hearts;</a>
+        <div style="text-align:center; line-height:1.6; font-size:20px;">
+            PURE NOKIA<br>EXPERIENCE<br><br>
+            <a href="https://github.com/Dad-89" style="font-size:60px; color:#ff4444; text-decoration:none;">&hearts;</a>
         </div>
-        <button class="btn" id="btn-back-ab">BACK</button>
+        <button class="menu-btn" id="btn-back-ab">BACK</button>
     </div>
 
 <script>
-    // --- ENGINE VARIABLES ---
+    /* --- JS ENGINE OTTIMIZZATO --- */
     const canvas = document.getElementById("gc");
     const ctx = canvas.getContext("2d");
-    const screenDiv = document.getElementById("screen");
+    const screenCont = document.getElementById("screen-container");
     
-    // Configurazione
-    const GRID_SIZE = 10; // Pixel size
-    const FPS = 15;       // Speed
+    const GRID = 10; 
+    const FPS = 15;
     
-    let tileX, tileY; // Dimensioni griglia (calcolate dinamicamente)
+    let tX, tY; 
+    let px, py, trail=[], tail=5, score=0;
+    let xv=0, yv=0, nextX=1, nextY=0, hasMoved=false;
+    let ax, ay;
     
-    // Stato Gioco
-    let px, py;       // Posizione Snake
-    let trail = [];   // Corpo Snake
-    let tail = 5;     // Lunghezza
-    let score = 0;
-    
-    // Velocity & Input Buffer (FIX BUG 1)
-    let xv = 0, yv = 0;       // Velocità corrente
-    let nextX = 1, nextY = 0; // Velocità bufferizzata (prossimo frame)
-    let hasMoved = false;     // Flag: ci siamo mossi in questo frame?
-    
-    let ax, ay;       // Mela
-    
-    let isPaused = false;
-    let isRunning = false;
-    let gameLoopId;
+    let isPaused=false, isRunning=false, loopId;
 
-    // --- SETUP & RESIZE ---
     function init() {
         resize();
         window.addEventListener('resize', resize);
         
-        // Touch Handlers (FIX BUG 3)
-        const touchZone = document.getElementById("touch-zone");
-        touchZone.addEventListener('touchstart', handleTouchStart, {passive: false});
-        touchZone.addEventListener('touchmove', handleTouchMove, {passive: false});
+        // Touch su tutto lo schermo
+        const surf = document.getElementById("touch-surface");
+        surf.addEventListener('touchstart', handleStart, {passive:false});
+        surf.addEventListener('touchmove', handleMove, {passive:false});
         
-        // Keyboard Handlers
         document.addEventListener('keydown', handleKey);
         
-        // Buttons
+        // UI Bindings
         document.getElementById("pause-btn").onclick = togglePause;
         document.getElementById("btn-resume").onclick = togglePause;
-        document.getElementById("btn-new").onclick = startNewGame;
-        document.getElementById("btn-best").onclick = showLeaderboard;
-        document.getElementById("btn-about").onclick = showAbout;
-        document.getElementById("btn-back-lb").onclick = openMainMenu;
-        document.getElementById("btn-back-ab").onclick = openMainMenu;
+        document.getElementById("btn-new").onclick = startNew;
+        document.getElementById("btn-best").onclick = showLb;
+        document.getElementById("btn-about").onclick = showAb;
+        document.getElementById("btn-back-lb").onclick = openMain;
+        document.getElementById("btn-back-ab").onclick = openMain;
 
-        initLeaderboard();
-        startNewGame();
+        initLb();
+        startNew();
     }
 
     function resize() {
-        // Allinea canvas al div "screen"
-        canvas.width = screenDiv.clientWidth;
-        canvas.height = screenDiv.clientHeight;
-        
-        tileX = Math.floor(canvas.width / GRID_SIZE);
-        tileY = Math.floor(canvas.height / GRID_SIZE);
+        // Adatta il canvas al container LCD
+        canvas.width = screenCont.clientWidth;
+        canvas.height = screenCont.clientHeight;
+        tX = Math.floor(canvas.width / GRID);
+        tY = Math.floor(canvas.height / GRID);
     }
 
-    // --- GAME LOOP ---
-    function startNewGame() {
+    function startNew() {
         closeMenus();
-        // Rimuovi bordo rosso di debug dopo il primo avvio
-        screenDiv.classList.remove("debug-border");
-        
-        // Reset Stato
-        score = 0; document.getElementById("score").innerText = "0";
-        tail = 5; trail = [];
-        
-        // Centro
-        resize(); // Sicurezza
-        px = Math.floor(tileX / 2);
-        py = Math.floor(tileY / 2);
-        
-        // Start Right
-        xv = 1; yv = 0;
-        nextX = 1; nextY = 0;
-        
+        score=0; document.getElementById("score").innerText="0";
+        tail=5; trail=[];
+        resize();
+        px = Math.floor(tX/2); py = Math.floor(tY/2);
+        xv=1; yv=0; nextX=1; nextY=0;
         spawnApple();
-        
-        isRunning = true;
-        isPaused = false;
-        
-        if(gameLoopId) clearInterval(gameLoopId);
-        gameLoopId = setInterval(update, 1000/FPS);
+        isRunning=true; isPaused=false;
+        if(loopId) clearInterval(loopId);
+        loopId = setInterval(update, 1000/FPS);
     }
 
     function update() {
         if(isPaused || !isRunning) return;
+        xv=nextX; yv=nextY; hasMoved=false;
+        px+=xv; py+=yv;
 
-        // APPLICAZIONE INPUT (Bufferizzato)
-        xv = nextX;
-        yv = nextY;
-        hasMoved = false; // Reset flag per il nuovo frame
+        // Wrap muri
+        if(px<0) px=tX-1; if(px>tX-1) px=0;
+        if(py<0) py=tY-1; if(py>tY-1) py=0;
 
-        // MOVIMENTO
-        px += xv;
-        py += yv;
+        // Draw Background
+        ctx.fillStyle="#879c85"; ctx.fillRect(0,0,canvas.width,canvas.height);
 
-        // WRAP (Muri infiniti)
-        if(px < 0) px = tileX - 1;
-        if(px > tileX - 1) px = 0;
-        if(py < 0) py = tileY - 1;
-        if(py > tileY - 1) py = 0;
-
-        // BACKGROUND
-        ctx.fillStyle = "#879c85";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // DISEGNA SNAKE
-        ctx.fillStyle = "#112211"; // Nokia Blackish
+        // Draw Snake
+        ctx.fillStyle="#1a2e1a";
         for(let i=0; i<trail.length; i++) {
-            ctx.fillRect(trail[i].x * GRID_SIZE, trail[i].y * GRID_SIZE, GRID_SIZE-1, GRID_SIZE-1);
-            
-            // COLLISIONE (Self)
-            if(trail[i].x === px && trail[i].y === py) {
-                // Ignora collisione se stiamo "uscendo" dalla coda (bug visivo raro)
-                if(tail > 5) gameOver();
-            }
+            ctx.fillRect(trail[i].x*GRID, trail[i].y*GRID, GRID-1, GRID-1);
+            if(trail[i].x===px && trail[i].y===py && tail>5) gameOver();
         }
+        trail.push({x:px, y:py});
+        while(trail.length>tail) trail.shift();
 
-        trail.push({x: px, y: py});
-        while(trail.length > tail) trail.shift();
-
-        // MANGIA MELA
-        if(ax === px && ay === py) {
-            tail++;
-            score++;
-            document.getElementById("score").innerText = score;
-            vibrate(20); // Feedback tattile leggero
+        // Apple Logic
+        if(ax===px && ay===py) {
+            tail++; score++; document.getElementById("score").innerText=score;
+            if(navigator.vibrate) navigator.vibrate(20);
             spawnApple();
         }
-
-        // DISEGNA MELA
-        ctx.fillStyle = "#000";
-        ctx.fillRect(ax*GRID_SIZE, ay*GRID_SIZE, GRID_SIZE, GRID_SIZE);
+        ctx.fillStyle="#000"; ctx.fillRect(ax*GRID, ay*GRID, GRID, GRID);
     }
 
-    // FIX BUG 2: SPAWN INTELLIGENTE
     function spawnApple() {
-        let valid = false;
+        let valid=false;
         while(!valid) {
-            ax = Math.floor(Math.random() * tileX);
-            ay = Math.floor(Math.random() * tileY);
-            
-            valid = true;
-            // Controlla se è sopra il serpente
-            for(let t of trail) {
-                if(t.x === ax && t.y === ay) {
-                    valid = false;
-                    break;
-                }
-            }
+            ax=Math.floor(Math.random()*tX); ay=Math.floor(Math.random()*tY);
+            valid=true;
+            for(let t of trail) if(t.x===ax && t.y===ay) valid=false;
         }
     }
 
     function gameOver() {
-        vibrate(200); // Feedback tattile lungo
-        isRunning = false;
-        saveScore(score);
-        document.getElementById("menu-title").innerText = "GAME OVER";
-        document.getElementById("btn-resume").style.display = "none";
+        if(navigator.vibrate) navigator.vibrate(200);
+        isRunning=false; saveScore(score);
+        document.getElementById("menu-title").innerText="GAME OVER";
+        document.getElementById("btn-resume").style.display="none";
         document.getElementById("menu-main").classList.remove("hidden");
     }
 
-    // --- INPUT HANDLING (BUFFER SYSTEM) ---
-    // Questo sistema impedisce al serpente di girarsi di 180° in un frame
-    
-    let touchX, touchY;
-
-    function handleTouchStart(e) {
-        e.preventDefault();
-        touchX = e.touches[0].clientX;
-        touchY = e.touches[0].clientY;
-    }
-
-    function handleTouchMove(e) {
+    // --- INPUT ---
+    let tStartX, tStartY;
+    function handleStart(e) { e.preventDefault(); tStartX=e.touches[0].clientX; tStartY=e.touches[0].clientY; }
+    function handleMove(e) {
         if(isPaused || !isRunning) return;
         e.preventDefault();
+        if(!tStartX) return;
+        let dx = e.touches[0].clientX - tStartX;
+        let dy = e.touches[0].clientY - tStartY;
         
-        if(!touchX || !touchY) return;
-
-        let curX = e.touches[0].clientX;
-        let curY = e.touches[0].clientY;
-        let dx = curX - touchX;
-        let dy = curY - touchY;
-
-        // Sensibilità swipe
-        if(Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-            // Se abbiamo già processato un input in questo frame tick, ignoriamo (evita suicidio)
-            if(hasMoved) return; 
-
-            if(Math.abs(dx) > Math.abs(dy)) {
-                changeDir(dx > 0 ? 1 : -1, 0);
-            } else {
-                changeDir(0, dy > 0 ? 1 : -1);
-            }
-            
-            // Reset per continuous tracking
-            touchX = curX;
-            touchY = curY;
+        if(Math.abs(dx)>10 || Math.abs(dy)>10) {
+            if(hasMoved) return; // Wait next frame
+            if(Math.abs(dx)>Math.abs(dy)) change(dx>0?1:-1, 0);
+            else change(0, dy>0?1:-1);
+            tStartX=e.touches[0].clientX; tStartY=e.touches[0].clientY;
         }
     }
-
     function handleKey(e) {
         switch(e.key) {
-            case 'ArrowLeft': changeDir(-1, 0); break;
-            case 'ArrowUp': changeDir(0, -1); break;
-            case 'ArrowRight': changeDir(1, 0); break;
-            case 'ArrowDown': changeDir(0, 1); break;
+            case 'ArrowLeft': change(-1,0); break;
+            case 'ArrowUp': change(0,-1); break;
+            case 'ArrowRight': change(1,0); break;
+            case 'ArrowDown': change(0,1); break;
             case 'p': togglePause(); break;
         }
     }
-
-    function changeDir(x, y) {
-        // NON permettere inversione di 180° rispetto alla velocità CORRENTE (xv, yv)
-        if(x === -xv && x !== 0) return;
-        if(y === -yv && y !== 0) return;
-        
-        // Se passa il controllo, imposta la velocità per il PROSSIMO frame
-        nextX = x;
-        nextY = y;
-        hasMoved = true; // Input accettato per questo frame
-        vibrate(5); // Micro feedback
+    function change(x,y) {
+        if(x===-xv && x!==0) return;
+        if(y===-yv && y!==0) return;
+        nextX=x; nextY=y; hasMoved=true;
     }
 
-    function vibrate(ms) {
-        if(navigator.vibrate) navigator.vibrate(ms);
-    }
-
-    // --- MENU LOGIC ---
+    // --- MENUS ---
     function togglePause() {
-        if(!isRunning && document.getElementById("menu-title").innerText === "GAME OVER") return;
-        
+        if(!isRunning && document.getElementById("menu-title").innerText==="GAME OVER") return;
+        isPaused = !isPaused;
         if(isPaused) {
-            closeMenus();
-            isPaused = false;
-        } else {
-            isPaused = true;
-            document.getElementById("menu-title").innerText = "PAUSED";
-            document.getElementById("btn-resume").style.display = "block";
-            document.getElementById("menu-main").classList.remove("hidden");
-        }
+            document.getElementById("menu-title").innerText="PAUSED";
+            document.getElementById("btn-resume").style.display="block";
+            openMain();
+        } else closeMenus();
     }
+    function closeMenus() { document.querySelectorAll('.overlay').forEach(e=>e.classList.add('hidden')); }
+    function openMain() { closeMenus(); document.getElementById("menu-main").classList.remove("hidden"); }
+    function showLb() { closeMenus(); renderLb(); document.getElementById("menu-lb").classList.remove("hidden"); }
+    function showAb() { closeMenus(); document.getElementById("menu-about").classList.remove("hidden"); }
 
-    function closeMenus() {
-        document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+    // --- DATA ---
+    const LB_KEY='snake_pure_lb';
+    function initLb() {
+        if(!localStorage.getItem(LB_KEY)) localStorage.setItem(LB_KEY, JSON.stringify([
+            {n:'AAAAAAAAA',s:999999}, {n:'MASTER',s:500}, {n:'VINTAGE',s:200}, {n:'NOKIA',s:50}, {n:'NEWBIE',s:10}
+        ]));
     }
-    
-    function openMainMenu() {
-        closeMenus();
-        document.getElementById("menu-main").classList.remove("hidden");
-    }
-
-    function showLeaderboard() {
-        closeMenus();
-        renderLeaderboard();
-        document.getElementById("menu-lb").classList.remove("hidden");
-    }
-
-    function showAbout() {
-        closeMenus();
-        document.getElementById("menu-about").classList.remove("hidden");
-    }
-
-    // --- STORAGE ---
-    const LB_KEY = 'snake_3310_perfect_lb';
-    
-    function initLeaderboard() {
-        if(!localStorage.getItem(LB_KEY)) {
-            const defaults = [
-                { n: 'AAAAAAAAA', s: 999999 },
-                { n: 'HACKER_MAN', s: 500 },
-                { n: 'OLD_SCHOOL', s: 250 },
-                { n: 'NOKIA_3310', s: 100 },
-                { n: 'GUEST', s: 10 }
-            ];
-            localStorage.setItem(LB_KEY, JSON.stringify(defaults));
-        }
-    }
-
     function saveScore(s) {
-        let data = JSON.parse(localStorage.getItem(LB_KEY));
-        if(s > data[data.length-1].s) {
-            let name = prompt("NEW HIGHSCORE! Name:", "PLAYER");
-            if(!name) name = "UNKNOWN";
-            name = name.substring(0, 10).toUpperCase();
-            data.push({n: name, s: s});
-            data.sort((a,b) => b.s - a.s);
-            data = data.slice(0, 5);
-            localStorage.setItem(LB_KEY, JSON.stringify(data));
+        let d = JSON.parse(localStorage.getItem(LB_KEY));
+        if(s>d[d.length-1].s) {
+            let n=prompt("HIGHSCORE! Name:","PLAYER");
+            if(!n) n="UNKNOWN";
+            d.push({n:n.substring(0,10).toUpperCase(),s:s});
+            d.sort((a,b)=>b.s-a.s);
+            localStorage.setItem(LB_KEY, JSON.stringify(d.slice(0,5)));
         }
     }
-
-    function renderLeaderboard() {
-        let data = JSON.parse(localStorage.getItem(LB_KEY));
-        let list = document.getElementById("lb-list");
-        list.innerHTML = "";
-        data.forEach((item, i) => {
-            let row = document.createElement("div");
-            row.className = "lb-row";
-            if(i===0 && item.s === 999999) row.classList.add("gold-score");
-            row.innerHTML = `<span>${i+1}. ${item.n}</span><span>${item.s}</span>`;
-            list.appendChild(row);
+    function renderLb() {
+        let d=JSON.parse(localStorage.getItem(LB_KEY));
+        let l=document.getElementById("lb-list"); l.innerHTML="";
+        d.forEach((x,i)=>{
+            let r=document.createElement("div"); r.className="lb-row";
+            if(i===0 && x.s===999999) r.classList.add("gold");
+            r.innerHTML=`<span>${i+1}.${x.n}</span><span>${x.s}</span>`;
+            l.appendChild(r);
         });
     }
 
-    window.onload = init;
-
+    window.onload=init;
 </script>
 </body>
 </html>
