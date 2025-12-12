@@ -371,5 +371,28 @@
 
     window.onload=init;
 </script>
+
+<script>
+    // --- KILL SWITCH PER SERVICE WORKER ---
+    // Questo codice forza la rimozione di qualsiasi PWA/Cache precedente
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister();
+                console.log("Service Worker Ucciso. Cache liberata.");
+            }
+        });
+        
+        // Forza il ricaricamento della pagina se c'era un SW attivo
+        if(window.navigator && navigator.serviceWorker) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                if (registrations.length > 0) {
+                    window.location.reload(true);
+                }
+            });
+        }
+    }
+</script>
+
 </body>
 </html>
