@@ -1,5 +1,5 @@
 // Service Worker minimale per cache
-const CACHE_NAME = 'snake-3310-v1';
+const CACHE_NAME = 'snake-3310-v2';
 const ASSETS = [
   './',
   './index.html',
