@@ -71,16 +71,28 @@
             background-size: 128%; 
         }
 
-        /* --- SCHERMO GIOCO (TUE COORDINATE V1 BLOCCATE) --- */
-       
-    
-       #screen-container {
-            position: absolute; top: 13.5%; left: 23%; width: 83%; height: 58%;
-            background-color: transparent; border-radius: 10px 10px 50px 50px;
-            overflow: hidden; z-index: 10;
-        }
-     
-    
+      
+            /* --- SCHERMO DI GIOCO (CALIBRAZIONE DEFINITIVA) --- */
+  #screen-container {
+    position: absolute;
+    /* Sposta l'inizio dello schermo più in basso, sotto la scritta NOKIA */
+    top: 28%;
+    /* Allunga lo schermo verso il basso, fino a prima dei tasti */
+    height: 34%;
+    /* Mantiene la posizione orizzontale */
+    left: 13%;
+    /* Mantiene la larghezza */
+    width: 73%;
+    /* Rende lo sfondo trasparente */
+    background-color: transparent;
+    /* Rimuove l'ombra */
+    box-shadow: none;
+    /* Arrotonda leggermente gli angoli per seguire la forma dello schermo */
+    border-radius: 15px;
+    /* Assicura che il serpente non esca dai bordi del contenitore */
+    overflow: hidden;
+    z-index: 10;
+}
     
 
         canvas {
