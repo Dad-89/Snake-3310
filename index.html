@@ -12,7 +12,7 @@
     
     <title>Snake 3310 Ultimate</title>
     <style>
-        /* --- STILE ORIGINALE V1 (Quello che funzionava) --- */
+        /* --- LAYOUT GENERALE --- */
         body {
             background: #151515;
             margin: 0;
@@ -48,7 +48,8 @@
             cursor: pointer; text-transform: uppercase;
         }
 
-        /* IL CONTENITORE V1 ESATTO */
+        /* --- STRUTTURA SEMPLIFICATA (V1 STYLE) --- */
+        /* Questo contenitore assicura le proporzioni corette */
         #phone-mask {
             position: relative;
             width: 98vw; 
@@ -60,7 +61,7 @@
             box-shadow: 0 10px 60px rgba(0,0,0,0.9);
         }
 
-        /* L'IMMAGINE DI SFONDO V1 ESATTA */
+        /* L'immagine di sfondo */
         #phone-bg {
             width: 100%;
             height: 100%;
@@ -70,13 +71,17 @@
             background-size: 128%; 
         }
 
-        
-        }
-        #screen-container {
+        /* --- SCHERMO GIOCO (TUE COORDINATE V1 BLOCCATE) --- */
+       
+    
+       #screen-container {
             position: absolute; top: 23.5%; left: 13.5%; width: 74%; height: 32%;
             background-color: transparent; border-radius: 10px 10px 50px 50px;
             overflow: hidden; z-index: 10;
         }
+     
+    
+    
 
         canvas {
             display: block; width: 100%; height: 100%;
@@ -87,6 +92,7 @@
 
         #touch-surface { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; }
 
+        /* --- MENU --- */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.92); z-index: 500;
@@ -120,9 +126,7 @@
 
     <div id="phone-mask">
         <div id="phone-bg">
-            <div id="screen-container">
-                <canvas id="gc"></canvas>
-            </div>
+            <div id="screen-container"><canvas id="gc"></canvas></div>
         </div>
     </div>
 
@@ -152,12 +156,22 @@
     </div>
 
 <script>
-    // --- MOTORE JAVASCRIPT DELLA V2 (AUDIO, PWA, LOGICA) ---
-    
+    // --- KILL SWITCH PWA (PER SBLOCCARE AGGIORNAMENTI) ---
+    // Se c'è un Service Worker attivo, lo rimuove e ricarica la pagina
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(console.error);
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister();
+                console.log("Service Worker rimosso per forzare aggiornamento.");
+            }
+            // Se ne trova uno attivo, ricarica la pagina per applicare le modifiche
+            if (registrations.length > 0) {
+                window.location.reload();
+            }
+        });
     }
 
+    // --- AUDIO ENGINE ---
     let audioCtx = null;
 
     function unlockAudio() {
@@ -371,28 +385,5 @@
 
     window.onload=init;
 </script>
-
-<script>
-    // --- KILL SWITCH PER SERVICE WORKER ---
-    // Questo codice forza la rimozione di qualsiasi PWA/Cache precedente
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                registration.unregister();
-                console.log("Service Worker Ucciso. Cache liberata.");
-            }
-        });
-        
-        // Forza il ricaricamento della pagina se c'era un SW attivo
-        if(window.navigator && navigator.serviceWorker) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                if (registrations.length > 0) {
-                    window.location.reload(true);
-                }
-            });
-        }
-    }
-</script>
-
 </body>
 </html>
