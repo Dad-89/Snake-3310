@@ -194,19 +194,50 @@
 <script>
 
 
+        // ==========================================
+    // FORCE UPDATE SYSTEM (SAFARI PROOF)
     // ==========================================
-    // AUTO-UPDATE & CACHE BUSTING
-    // ==========================================
-    const APP_VERSION = "2"; 
-    
-    (function checkVersion() {
-        const storedVer = localStorage.getItem("snake_version");
-        if (storedVer !== APP_VERSION) {
-            console.log("Nuova versione rilevata: Refresh forzato.");
-            localStorage.setItem("snake_version", APP_VERSION);
-            // Svuota cache apparente ricaricando dalla sorgente
-            window.location.reload(true);
+    const APP_VERSION = "3"; // <--- CAMBIA QUESTO OGNI VOLTA (es. 1.1, 1.2...)
+
+    (function aggressiveCacheBuster() {
+        // 1. Elimina eventuali Service Workers (Spesso causano il caching su iOS)
+        if(navigator.serviceWorker) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) { registration.unregister(); }
+            });
         }
+
+        // 2. Controllo incrociato: Scarica il file stesso dal server
+        // Aggiunge '?cache_bust=' + timestamp per obbligare il server a rispondere
+        fetch(window.location.href.split('?')[0] + '?cache_bust=' + new Date().getTime())
+            .then(response => response.text())
+            .then(html => {
+                // 3. Cerca la definizione della versione nel file sul server
+                // Regex che cerca: const APP_VERSION = "X.X";
+                const serverVersionMatch = html.match(/const APP_VERSION = "(.*?)";/);
+                
+                if (serverVersionMatch && serverVersionMatch[1]) {
+                    const serverVersion = serverVersionMatch[1];
+                    
+                    // Se la versione interna (cache) è diversa da quella sul server
+                    if (APP_VERSION !== serverVersion) {
+                        console.log("Aggiornamento trovato: " + APP_VERSION + " -> " + serverVersion);
+                        
+                        // 4. Pulisce la cache locale per sicurezza
+                        if(window.localStorage) window.localStorage.removeItem('snake_version');
+                        
+                        // 5. RELOAD FORZATO
+                        // Aggiunge un parametro fittizio all'URL per forzare Safari a ricaricare
+                        window.location.reload(true);
+                    } else {
+                        console.log("App aggiornata: v" + APP_VERSION);
+                    }
+                }
+            })
+            .catch(err => {
+                // Se siamo offline o errore, non fare nulla (gioca con la versione cache)
+                console.log("Check update fallito (Offline?)", err);
+            });
     })();
 
 
