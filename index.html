@@ -1,23 +1,21 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#151515">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon.png">
-    
-    <title>Snake 3310 Ultimate</title>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>Snake 3310 Legend</title>
     <style>
         /* --- LAYOUT GENERALE --- */
         body {
-            background: #151515;
+            background: #151515; /* Nero profondo per contrasto */
             margin: 0;
-            overflow: hidden;
-            position: fixed;
+            overflow: hidden; /* Niente scroll */
+            position: fixed; /* Fix per rimbalzo iOS */
             width: 100%;
             height: 100%;
             font-family: 'Courier New', monospace;
@@ -25,31 +23,41 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            touch-action: none;
+            touch-action: none; /* Disabilita zoom e pan */
         }
 
+        /* --- AVVISO ROTAZIONE --- */
         #orientation-lock {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999; color: #fff; flex-direction: column;
-            align-items: center; justify-content: center; text-align: center; font-size: 24px; font-weight: bold;
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999;
+            color: #fff; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; font-size: 24px; font-weight: bold;
         }
-        @media screen and (orientation: landscape) { #orientation-lock { display: flex; } }
+        @media screen and (orientation: landscape) {
+            #orientation-lock { display: flex; }
+        }
 
+        /* --- BARRA SUPERIORE --- */
         #top-bar {
-            position: absolute; top: 0; left: 0; width: 100%; height: 60px;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 60px;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; box-sizing: border-box; z-index: 100; pointer-events: none;
+            padding: 0 20px; box-sizing: border-box;
+            z-index: 100; pointer-events: none;
         }
-        #score-box { color: #c7f0d8; font-weight: bold; font-size: 24px; text-shadow: 2px 2px 0 #000; }
-        
+        #score-box { 
+            color: #c7f0d8; font-weight: bold; font-size: 24px; 
+            text-shadow: 2px 2px 0 #000;
+        }
         #pause-btn {
-            pointer-events: auto; background: #879c85; color: #000; border: 3px solid #000;
-            padding: 8px 16px; font-weight: bold; border-radius: 10px; font-size: 16px;
-            cursor: pointer; text-transform: uppercase;
+            pointer-events: auto;
+            background: #879c85; color: #000; border: 3px solid #000;
+            padding: 8px 16px; font-weight: bold; border-radius: 10px;
+            font-size: 16px; cursor: pointer; text-transform: uppercase;
         }
 
-        /* --- STRUTTURA SEMPLIFICATA (V1 STYLE) --- */
-        /* Questo contenitore assicura le proporzioni corette */
+        /* --- CONTENITORE TELEFONO (FUSTELLA) --- */
         #phone-mask {
             position: relative;
             width: 98vw; 
@@ -61,75 +69,73 @@
             box-shadow: 0 10px 60px rgba(0,0,0,0.9);
         }
 
-        /* L'immagine di sfondo */
+        /* --- IMMAGINE SFONDO --- */
         #phone-bg {
             width: 100%;
             height: 100%;
-            background-image: url('nokia_frame.JPG'); 
+            background-image: url('nokia_frame.JPG'); /* Controlla il nome file! */
             background-position: center;
             background-repeat: no-repeat;
-            background-size: 128%; 
+            background-size: 128%; /* Zoom per tagliare i bordi scacchi */
         }
 
-      
-            /* --- SCHERMO DI GIOCO (CALIBRAZIONE DEFINITIVA) --- */
-  #screen-container {
-    position: absolute;
-    /* Sposta l'inizio dello schermo più in basso, sotto la scritta NOKIA */
-    top: 20%;
-    /* Allunga lo schermo verso il basso, fino a prima dei tasti */
-    height: 40%;
-    /* Mantiene la posizione orizzontale */
-    left: 5%;
-    /* Mantiene la larghezza */
-    width: 84%;
-    /* Rende lo sfondo trasparente */
-    background-color: transparent;
-    /* Rimuove l'ombra */
-    box-shadow: none;
-    /* Arrotonda leggermente gli angoli per seguire la forma dello schermo */
-    border-radius: 15px;
-    /* Assicura che il serpente non esca dai bordi del contenitore */
-    overflow: hidden;
-    z-index: 10;
-}
-    
+        /* --- SCHERMO DI GIOCO (VISUALIZZAZIONE V1) --- */
+        #screen-container {
+            position: absolute;
+            top: 28%;      /* Posizione V1 */
+            height: 34%;   /* Altezza V1 */
+            left: 13%;     /* Sinistra V1 */
+            width: 73%;    /* Larghezza V1 */
+            background-color: transparent;
+            box-shadow: none;
+            border-radius: 15px;
+            overflow: hidden;
+            z-index: 10;
+        }
 
         canvas {
             display: block; width: 100%; height: 100%;
-            image-rendering: pixelated; 
+            image-rendering: pixelated;
+            /* TRASPARENZA E BLENDING V1 */
             mix-blend-mode: multiply; 
-            opacity: 0.85;
+            opacity: 0.85; 
         }
 
-        #touch-surface { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; }
+        /* --- INPUT LAYER --- */
+        #touch-surface {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50;
+        }
 
-        /* --- MENU --- */
+        /* --- STILE MENU --- */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.92); z-index: 500;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #879c85; backdrop-filter: blur(5px);
+            color: #879c85;
         }
         .hidden { display: none !important; }
         
-        h1 { font-size: 40px; margin-bottom: 30px; border-bottom: 4px solid #879c85; text-transform: uppercase; letter-spacing: 2px;}
+        h1 { font-size: 40px; margin-bottom: 30px; border-bottom: 4px solid #879c85; text-transform: uppercase;}
         
         .menu-btn {
-            width: 260px; padding: 20px; margin: 10px; background: #000;
-            border: 4px solid #879c85; color: #879c85; font-weight: bold; font-size: 22px;
-            font-family: inherit; cursor: pointer; transition: transform 0.1s;
+            width: 260px; padding: 20px; margin: 10px;
+            background: #000; border: 4px solid #879c85;
+            color: #879c85; font-weight: bold; font-size: 22px;
+            font-family: inherit; cursor: pointer;
         }
-        .menu-btn:active { background: #879c85; color: #000; transform: scale(0.95); }
+        .menu-btn:active { background: #879c85; color: #000; }
+        
         .gold { color: #ffd700; text-shadow: 0 0 10px orange; }
         .lb-row { width: 300px; display: flex; justify-content: space-between; border-bottom: 1px dashed #555; padding: 12px 0; font-size: 20px; }
-        
+
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <div id="orientation-lock"><p>⚠️<br>RUOTA IL TELEFONO<br>IN VERTICALE</p></div>
+    <div id="orientation-lock">
+        <p>⚠️<br>RUOTA IL TELEFONO<br>IN VERTICALE</p>
+    </div>
 
     <div id="top-bar">
         <div id="score-box">SCORE: <span id="score">0</span></div>
@@ -138,7 +144,9 @@
 
     <div id="phone-mask">
         <div id="phone-bg">
-            <div id="screen-container"><canvas id="gc"></canvas></div>
+            <div id="screen-container">
+                <canvas id="gc"></canvas>
+            </div>
         </div>
     </div>
 
@@ -161,87 +169,110 @@
     <div id="menu-about" class="overlay hidden">
         <h1>ABOUT</h1>
         <div style="text-align:center; line-height:1.6; font-size:20px;">
-            SNAKE 3310<br>ULTIMATE EDITION<br><br>
+            SNAKE 3310<br>LEGEND EDITION<br><br>
             <a href="https://github.com/Dad-89" style="font-size:70px; color:#ff4444; text-decoration:none; display:block; animation: pulse 1s infinite;">&hearts;</a>
         </div>
         <button class="menu-btn" id="btn-back-ab">BACK</button>
     </div>
 
 <script>
-    // --- KILL SWITCH PWA (PER SBLOCCARE AGGIORNAMENTI) ---
-    // Se c'è un Service Worker attivo, lo rimuove e ricarica la pagina
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                registration.unregister();
-                console.log("Service Worker rimosso per forzare aggiornamento.");
-            }
-            // Se ne trova uno attivo, ricarica la pagina per applicare le modifiche
-            if (registrations.length > 0) {
-                window.location.reload();
-            }
-        });
-    }
 
-    // --- AUDIO ENGINE ---
+    // ==========================================
+    // 1. FORCE UPDATE SYSTEM (Anti-Cache)
+    // ==========================================
+    const APP_VERSION = "1.5"; // <--- CAMBIA QUESTO NUMERO AD OGNI MODIFICA
+
+    (function aggressiveCacheBuster() {
+        if(navigator.serviceWorker) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) { registration.unregister(); }
+            });
+        }
+
+        fetch(window.location.href.split('?')[0] + '?cache_bust=' + new Date().getTime())
+            .then(response => response.text())
+            .then(html => {
+                const serverVersionMatch = html.match(/const APP_VERSION = "(.*?)";/);
+                if (serverVersionMatch && serverVersionMatch[1]) {
+                    const serverVersion = serverVersionMatch[1];
+                    if (APP_VERSION !== serverVersion) {
+                        if(window.localStorage) window.localStorage.removeItem('snake_version');
+                        window.location.reload(true);
+                    }
+                }
+            })
+            .catch(err => console.log("Offline o errore check version", err));
+    })();
+
+
+    // ==========================================
+    // 2. MOTORE AUDIO & LOGICA
+    // ==========================================
     let audioCtx = null;
 
     function unlockAudio() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume().then(() => console.log("Audio unlocked"));
-        }
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         document.body.removeEventListener('touchstart', unlockAudio);
         document.body.removeEventListener('click', unlockAudio);
     }
 
+    // Attiva audio al primo tocco
     document.body.addEventListener('touchstart', unlockAudio, {passive: false});
     document.body.addEventListener('click', unlockAudio);
 
     function playSound(type) {
-        if (!audioCtx) return;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (!audioCtx || audioCtx.state === 'suspended') return;
 
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
 
         if (type === 'eat') {
             osc.type = 'square';
-            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime); 
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.1);
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
         } else if (type === 'die') {
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
-            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
         }
     }
 
-    const canvas = document.getElementById("gc");
-    const ctx = canvas.getContext("2d");
-    const screenCont = document.getElementById("screen-container");
+
+    // ==========================================
+    // 3. CONFIGURAZIONE VARIABILI
+    // ==========================================
+    const canvas = document.getElementById("gc"); 
+    const ctx = canvas.getContext("2d"); 
+    const screenCont = document.getElementById("screen-container"); 
     
     const GRID = 10; 
-    let baseFPS = 15; 
-    let currentFPS = baseFPS;
+    const BASE_FPS = 15; // Velocità Iniziale
+    let currentFPS = BASE_FPS; 
     
-    let tX, tY, px, py, trail=[], tail=5, score=0;
-    let xv=0, yv=0, nextX=1, nextY=0, hasMoved=false;
-    let ax, ay, isPaused=false, isRunning=false, loopId;
+    let tX, tY, px, py, trail = [], tail = 5, score = 0;
+    let xv = 0, yv = 0, nextX = 1, nextY = 0, hasMoved = false;
+    let ax, ay, isPaused = false, isRunning = false, loopId;
 
+
+    // ==========================================
+    // 4. CICLO DI GIOCO
+    // ==========================================
     function init() {
-        resize(); window.addEventListener('resize', resize);
+        resize(); 
+        window.addEventListener('resize', resize);
+        
         const surf = document.getElementById("touch-surface");
         surf.addEventListener('touchstart', handleStart, {passive:false});
         surf.addEventListener('touchmove', handleMove, {passive:false});
@@ -250,6 +281,7 @@
         document.getElementById("pause-btn").onclick = openMenuPause;
         document.getElementById("btn-resume").onclick = resumeGame;
         
+        // Il tasto NEW GAME sblocca l'audio e resetta tutto
         document.getElementById("btn-new").onclick = () => {
             unlockAudio();
             startNew();
@@ -260,142 +292,197 @@
         document.getElementById("btn-back-lb").onclick = openMain;
         document.getElementById("btn-back-ab").onclick = openMain;
 
-        initLb();
-        ctx.fillStyle="#879c85"; ctx.fillRect(0,0,canvas.width,canvas.height);
-        openMain();
+        initLb(); 
+        openMain(); 
     }
 
     function resize() {
-        canvas.width = screenCont.clientWidth; canvas.height = screenCont.clientHeight;
-        tX = Math.floor(canvas.width / GRID); tY = Math.floor(canvas.height / GRID);
+        canvas.width = screenCont.clientWidth;
+        canvas.height = screenCont.clientHeight;
+        tX = Math.floor(canvas.width / GRID); 
+        tY = Math.floor(canvas.height / GRID);
     }
-
+    
     function startNew() {
-        closeMenus();
-        score=0; document.getElementById("score").innerText="0";
-        tail=5; trail=[]; resize();
-        px = Math.floor(tX/2); py = Math.floor(tY/2);
-        xv=1; yv=0; nextX=1; nextY=0; 
-        currentFPS = baseFPS; 
-        spawnApple();
-        isRunning=true; isPaused=false;
+        closeMenus(); 
+        score = 0; 
+        document.getElementById("score").innerText = "0";
+        tail = 5; 
+        trail = []; 
+        resize();
+        
+        px = Math.floor(tX / 2); 
+        py = Math.floor(tY / 2);
+        xv = 1; yv = 0; 
+        nextX = 1; nextY = 0;
+        
+        currentFPS = BASE_FPS; // Resetta velocità
+        
+        spawnApple(); 
+        isRunning = true; 
+        isPaused = false;
+        
         if(loopId) clearInterval(loopId); 
         loopId = setInterval(update, 1000/currentFPS);
     }
 
     function update() {
         if(isPaused || !isRunning) return;
-        xv=nextX; yv=nextY; hasMoved=false;
-        px+=xv; py+=yv;
-        if(px<0) px=tX-1; if(px>tX-1) px=0; if(py<0) py=tY-1; if(py>tY-1) py=0;
+        
+        xv = nextX; yv = nextY; 
+        hasMoved = false; 
+        px += xv; py += yv;
+        
+        if(px < 0) px = tX - 1; if(px > tX - 1) px = 0; 
+        if(py < 0) py = tY - 1; if(py > tY - 1) py = 0;
 
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle="#879c85"; ctx.fillRect(0,0,canvas.width,canvas.height);
-
-        ctx.fillStyle="#1a2e1a";
+        // V1 STYLE: Pulisce il canvas per mantenere la trasparenza
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = "#1a2e1a"; 
         for(let i=0; i<trail.length; i++) {
             ctx.fillRect(trail[i].x*GRID, trail[i].y*GRID, GRID-0.5, GRID-0.5);
-            if(trail[i].x===px && trail[i].y===py && tail>5) gameOver();
+            if(trail[i].x === px && trail[i].y === py && tail > 5) gameOver();
         }
-        trail.push({x:px, y:py}); while(trail.length>tail) trail.shift();
+        
+        trail.push({x:px, y:py}); 
+        while(trail.length > tail) trail.shift(); 
 
-        if(ax===px && ay===py) {
-            tail++; score++; 
-            document.getElementById("score").innerText=score;
+        if(ax === px && ay === py) {
+            tail++; 
+            score++; 
+            document.getElementById("score").innerText = score;
+            
             if(navigator.vibrate) navigator.vibrate(20);
-            playSound('eat'); 
-            if(score % 5 === 0) {
+            playSound('eat'); // BIP!
+            
+            // ACCELERAZIONE: +1 FPS ogni 5 mele (fino a 30)
+            if(score % 5 === 0 && currentFPS < 30) {
                 currentFPS++;
                 clearInterval(loopId);
                 loopId = setInterval(update, 1000/currentFPS);
             }
+            
             spawnApple();
         }
-        ctx.fillStyle="#000"; ctx.fillRect(ax*GRID, ay*GRID, GRID, GRID);
+        
+        ctx.fillStyle = "#000"; 
+        ctx.fillRect(ax*GRID, ay*GRID, GRID, GRID);
     }
 
     function spawnApple() {
-        let valid=false;
+        let valid = false;
         while(!valid) {
-            ax=Math.floor(Math.random()*tX); ay=Math.floor(Math.random()*tY);
-            valid=true; for(let t of trail) if(t.x===ax && t.y===ay) valid=false;
+            ax = Math.floor(Math.random() * tX); 
+            ay = Math.floor(Math.random() * tY);
+            valid = true; 
+            for(let t of trail) if(t.x === ax && t.y === ay) valid = false;
         }
     }
 
     function gameOver() {
         if(navigator.vibrate) navigator.vibrate(400);
-        playSound('die'); 
-        isRunning=false; saveScore(score);
+        playSound('die'); // CRASH!
+        
+        isRunning = false; 
+        saveScore(score); 
+        
         document.getElementById("menu-title").innerText = "GAME OVER";
-        document.getElementById("btn-resume").style.display = "none";
-        document.getElementById("menu-main").classList.remove("hidden");
+        document.getElementById("btn-resume").style.display = "none"; 
+        document.getElementById("menu-main").classList.remove("hidden"); 
     }
 
+    // ==========================================
+    // 5. INPUT & UTILS
+    // ==========================================
     let tStartX;
-    function handleStart(e) { e.preventDefault(); tStartX=e.touches[0].clientX; tStartY=e.touches[0].clientY; }
+    function handleStart(e) { e.preventDefault(); tStartX = e.touches[0].clientX; tStartY = e.touches[0].clientY; }
+    
     function handleMove(e) {
-        if(isPaused || !isRunning) return; e.preventDefault();
+        if(isPaused || !isRunning) return; 
+        e.preventDefault();
         if(!tStartX) return;
-        let dx=e.touches[0].clientX-tStartX, dy=e.touches[0].clientY-tStartY;
-        if(Math.abs(dx)>10 || Math.abs(dy)>10) {
-            if(hasMoved) return;
-            if(Math.abs(dx)>Math.abs(dy)) change(dx>0?1:-1, 0); else change(0, dy>0?1:-1);
-            tStartX=e.touches[0].clientX; tStartY=e.touches[0].clientY;
+        
+        let dx = e.touches[0].clientX - tStartX;
+        let dy = e.touches[0].clientY - tStartY;
+        
+        if(Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+            if(hasMoved) return; 
+            if(Math.abs(dx) > Math.abs(dy)) change(dx > 0 ? 1 : -1, 0); 
+            else change(0, dy > 0 ? 1 : -1);
+            tStartX = e.touches[0].clientX; tStartY = e.touches[0].clientY;
         }
     }
+    
     function handleKey(e) {
         switch(e.key) {
-            case 'ArrowLeft': change(-1,0); break; case 'ArrowUp': change(0,-1); break;
-            case 'ArrowRight': change(1,0); break; case 'ArrowDown': change(0,1); break;
+            case 'ArrowLeft': change(-1,0); break; 
+            case 'ArrowUp': change(0,-1); break;
+            case 'ArrowRight': change(1,0); break; 
+            case 'ArrowDown': change(0,1); break;
             case 'p': openMenuPause(); break;
         }
     }
+    
     function change(x,y) {
-        if(x===-xv && x!==0) return; if(y===-yv && y!==0) return;
-        nextX=x; nextY=y; hasMoved=true;
+        if(x === -xv && x !== 0) return; 
+        if(y === -yv && y !== 0) return;
+        nextX = x; nextY = y; 
+        hasMoved = true;
     }
 
     function openMenuPause() {
-        if(!isRunning && document.getElementById("menu-title").innerText==="GAME OVER") {
-             document.getElementById("menu-main").classList.remove("hidden"); return;
+        if(!isRunning && document.getElementById("menu-title").innerText === "GAME OVER") {
+             document.getElementById("menu-main").classList.remove("hidden");
+             return;
         }
         isPaused = true;
-        document.getElementById("menu-title").innerText="PAUSED";
-        document.getElementById("btn-resume").style.display="block";
+        document.getElementById("menu-title").innerText = "PAUSED";
+        document.getElementById("btn-resume").style.display = "block"; 
         openMain();
     }
+    
     function resumeGame() { closeMenus(); isPaused = false; }
-    function closeMenus() { document.querySelectorAll('.overlay').forEach(e=>e.classList.add('hidden')); }
+    function closeMenus() { document.querySelectorAll('.overlay').forEach(e => e.classList.add('hidden')); }
     function openMain() { closeMenus(); document.getElementById("menu-main").classList.remove("hidden"); }
     function showLb() { closeMenus(); renderLb(); document.getElementById("menu-lb").classList.remove("hidden"); }
     function showAb() { closeMenus(); document.getElementById("menu-about").classList.remove("hidden"); }
 
-    const LB_KEY='snake_legend_lb';
+    const LB_KEY = 'snake_legend_lb';
     function initLb() {
         if(!localStorage.getItem(LB_KEY)) localStorage.setItem(LB_KEY, JSON.stringify([
-            {n:'AAAAAAAAA',s:999999}, {n:'HACKER',s:500}, {n:'RETRO',s:200}, {n:'NOKIA',s:50}, {n:'USER',s:10}
+            {n:'AAAAAAAAA',s:999999}, 
+            {n:'HACKER',s:500}, 
+            {n:'RETRO',s:200}, 
+            {n:'NOKIA',s:50}, 
+            {n:'USER',s:10}
         ]));
     }
     function saveScore(s) {
         let d = JSON.parse(localStorage.getItem(LB_KEY));
-        if(s>d[d.length-1].s) {
-            let n=prompt("RECORD! Inserisci Nome:","PLAYER"); if(!n) n="UNKNOWN";
-            d.push({n:n.substring(0,10).toUpperCase(),s:s}); d.sort((a,b)=>b.s-a.s);
+        if(s > d[d.length-1].s) {
+            let n = prompt("RECORD! Inserisci Nome:","PLAYER"); 
+            if(!n) n = "UNKNOWN";
+            d.push({n:n.substring(0,10).toUpperCase(),s:s}); 
+            d.sort((a,b)=>b.s-a.s);
             localStorage.setItem(LB_KEY, JSON.stringify(d.slice(0,5)));
         }
     }
     function renderLb() {
-        let d=JSON.parse(localStorage.getItem(LB_KEY));
-        let l=document.getElementById("lb-list"); l.innerHTML="";
-        d.forEach((x,i)=>{
-            let r=document.createElement("div"); r.className="lb-row";
-            if(i===0 && x.s===999999) r.classList.add("gold");
-            r.innerHTML=`<span>${i+1}.${x.n}</span><span>${x.s}</span>`;
+        let d = JSON.parse(localStorage.getItem(LB_KEY));
+        let l = document.getElementById("lb-list"); 
+        l.innerHTML = "";
+        d.forEach((x,i) => {
+            let r = document.createElement("div"); 
+            r.className = "lb-row";
+            if(i === 0 && x.s === 999999) r.classList.add("gold"); 
+            r.innerHTML = `<span>${i+1}.${x.n}</span><span>${x.s}</span>`;
             l.appendChild(r);
         });
     }
 
-    window.onload=init;
+    // START
+    window.onload = init;
 </script>
 </body>
 </html>
